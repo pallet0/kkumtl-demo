@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Novel Writer - Gemini Powered</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@300;400;700&family=Open+Sans:wght@400;600&family=Courier+Prime&family=Playfair+Display:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header>
+            <h1>📚 AI Novel Writer</h1>
+            <p>Powered by Gemini 2.5 Pro</p>
+        </header>
+
+        <div class="main-content">
+            <!-- Novel Writing Area -->
+            <div class="novel-container">
+                <div class="novel-header">
+                    <h2>Your Novel</h2>
+                    <div class="word-count">Words: <span id="wordCount">0</span></div>
+                </div>
+                <div id="novelEditor" class="novel-editor" contenteditable="true" placeholder="Start writing your novel here..."></div>
+                <div class="writing-indicator" id="writingIndicator">
+                    <span class="typing-dots">
+                        <span></span><span></span><span></span>
+                    </span>
+                    AI is writing...
+                </div>
+            </div>
+
+            <!-- Controls Panel -->
+            <div class="controls-panel">
+                <h3>⚙️ Settings</h3>
+                
+                <!-- API Key Input -->
+                <div class="control-group">
+                    <label for="apiKey">API Key:</label>
+                    <input type="password" id="apiKey" placeholder="Enter your Gemini API key">
+                </div>
+
+                <!-- Temperature -->
+                <div class="control-group">
+                    <label for="temperature">
+                        Temperature: <span id="tempValue">0.7</span>
+                        <span class="tooltip">?
+                            <span class="tooltip-text">Controls randomness (0=focused, 1=creative)</span>
+                        </span>
+                    </label>
+                    <input type="range" id="temperature" min="0" max="1" step="0.1" value="0.7">
+                </div>
+
+                <!-- Top-K -->
+                <div class="control-group">
+                    <label for="topK">
+                        Top-K: <span id="topKValue">40</span>
+                        <span class="tooltip">?
+                            <span class="tooltip-text">Limits word choices (lower=focused, higher=diverse)</span>
+                        </span>
+                    </label>
+                    <input type="range" id="topK" min="1" max="100" step="1" value="40">
+                </div>
+
+                <!-- Max Words -->
+                <div class="control-group">
+                    <label for="maxWords">
+                        Max Words: <span id="maxWordsValue">500</span>
+                    </label>
+                    <input type="range" id="maxWords" min="100" max="1000" step="50" value="500">
+                </div>
+
+                <!-- Writing Style -->
+                <div class="control-group">
+                    <label for="writingStyle">Writing Style:</label>
+                    <select id="writingStyle">
+                        <option value="neutral">Neutral</option>
+                        <option value="descriptive">Descriptive</option>
+                        <option value="concise">Concise</option>
+                        <option value="poetic">Poetic</option>
+                        <option value="dramatic">Dramatic</option>
+                        <option value="humorous">Humorous</option>
+                    </select>
+                </div>
+
+                <!-- Genre -->
+                <div class="control-group">
+                    <label for="genre">Genre:</label>
+                    <select id="genre">
+                        <option value="general">General Fiction</option>
+                        <option value="fantasy">Fantasy</option>
+                        <option value="scifi">Science Fiction</option>
+                        <option value="mystery">Mystery</option>
+                        <option value="romance">Romance</option>
+                        <option value="thriller">Thriller</option>
+                        <option value="historical">Historical</option>
+                    </select>
+                </div>
+
+                <!-- Font Family -->
+                <div class="control-group">
+                    <label for="fontFamily">Font Family:</label>
+                    <select id="fontFamily">
+                        <option value="'Merriweather', serif">Merriweather (Serif)</option>
+                        <option value="'Open Sans', sans-serif">Open Sans (Sans)</option>
+                        <option value="'Courier Prime', monospace">Courier (Mono)</option>
+                        <option value="'Playfair Display', serif">Playfair Display</option>
+                        <option value="Georgia, serif">Georgia</option>
+                    </select>
+                </div>
+
+                <!-- Font Size -->
+                <div class="control-group">
+                    <label for="fontSize">
+                        Font Size: <span id="fontSizeValue">16px</span>
+                    </label>
+                    <input type="range" id="fontSize" min="12" max="24" step="1" value="16">
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="button-group">
+                    <button id="writeBtn" class="btn btn-primary">
+                        <span class="btn-icon">✨</span> Write
+                    </button>
+                    <button id="undoBtn" class="btn btn-secondary">
+                        <span class="btn-icon">↶</span> Undo Last
+                    </button>
+                    <button id="saveBtn" class="btn btn-secondary">
+                        <span class="btn-icon">💾</span> Save
+                    </button>
+                    <button id="clearBtn" class="btn btn-danger">
+                        <span class="btn-icon">🗑️</span> Clear All
+                    </button>
+                </div>
+
+                <!-- Status Messages -->
+                <div id="statusMessage" class="status-message"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="config.js"></script>
+    <script src="novel-writer.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
