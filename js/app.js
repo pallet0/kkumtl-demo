@@ -31,9 +31,8 @@
         generationInfo: document.getElementById('generation-info'),
         autosaveStatus: document.getElementById('autosave-status'),
         
-        // Editor
+        // Editor (now contenteditable)
         editorTextarea: document.getElementById('editor-textarea'),
-        editorPreview: document.getElementById('editor-preview'),
         loadingOverlay: document.getElementById('loading-overlay'),
         
         // Toolbar Buttons
@@ -44,7 +43,6 @@
         btnRedo: document.getElementById('btn-redo'),
         btnGenerate: document.getElementById('btn-generate'),
         btnStop: document.getElementById('btn-stop'),
-        btnFormatToggle: document.getElementById('btn-format-toggle'),
         btnFullscreen: document.getElementById('btn-fullscreen'),
         
         // Settings Controls
@@ -93,7 +91,6 @@
     
     let state = {
         isGenerating: false,
-        isFormatPreviewActive: false,
         isFullscreen: false,
         lastSaveTime: null,
         autoSaveInterval: null,
@@ -210,11 +207,12 @@
     function setupToolbarListeners() {
         // New document
         elements.btnNew.addEventListener('click', () => {
-            if (elements.editorTextarea.value.trim() && 
+            if (FormatterModule.getPlainText(elements.editorTextarea).trim() && 
                 !confirm('Create a new document? Unsaved changes will be lost.')) {
                 return;
             }
-            elements.editorTextarea.value = '';
+            elements.editorTextarea.textContent = '';
+            FormatterModule.applyRealtimeFormatting(elements.editorTextarea);
             StorageModule.clearHistory();
             updateStats();
             showAlert('info', 'New Document', 'Started a fresh document.');
@@ -245,21 +243,20 @@
         // Stop generation
         elements.btnStop.addEventListener('click', handleStopGeneration);
 
-        // Toggle format preview
-        elements.btnFormatToggle.addEventListener('click', toggleFormatPreview);
-
         // Toggle fullscreen
         elements.btnFullscreen.addEventListener('click', toggleFullscreen);
 
         // Export buttons
         elements.btnExportTxt.addEventListener('click', () => {
-            StorageModule.exportAsText(elements.editorTextarea.value);
+            const text = FormatterModule.getPlainText(elements.editorTextarea);
+            StorageModule.exportAsText(text);
             showAlert('success', 'Exported', 'Document exported as text file.');
         });
 
         elements.btnExportHtml.addEventListener('click', () => {
+            const text = FormatterModule.getPlainText(elements.editorTextarea);
             const formatting = getFormattingSettings();
-            StorageModule.exportAsHtml(elements.editorTextarea.value, formatting);
+            StorageModule.exportAsHtml(text, formatting);
             showAlert('success', 'Exported', 'Document exported as HTML file.');
         });
 
@@ -280,38 +277,35 @@
     // ========================================
 
     /**
-     * Sets up editor event listeners
+     * Sets up editor event listeners for contenteditable
      */
     function setupEditorListeners() {
-        const textarea = elements.editorTextarea;
+        const editor = elements.editorTextarea;
 
-        // Update stats on input
-        textarea.addEventListener('input', () => {
+        // Update stats and apply formatting on input
+        editor.addEventListener('input', () => {
+            // Apply real-time formatting
+            FormatterModule.applyRealtimeFormatting(editor);
+            
             updateStats();
             
             // Push to history for undo (debounced)
             debounce(() => {
-                StorageModule.pushHistory(textarea.value);
+                StorageModule.pushHistory(FormatterModule.getPlainText(editor));
             }, 500)();
         });
 
         // Update cursor position
-        textarea.addEventListener('click', updateCursorDisplay);
-        textarea.addEventListener('keyup', updateCursorDisplay);
-
-        // Update format preview if active
-        textarea.addEventListener('input', () => {
-            if (state.isFormatPreviewActive) {
-                updateFormatPreview();
-            }
-        });
+        editor.addEventListener('click', updateCursorDisplay);
+        editor.addEventListener('keyup', updateCursorDisplay);
+        editor.addEventListener('focus', updateCursorDisplay);
     }
 
     /**
      * Updates word and character count display
      */
     function updateStats() {
-        const text = elements.editorTextarea.value;
+        const text = FormatterModule.getPlainText(elements.editorTextarea);
         elements.wordCount.textContent = FormatterModule.countWords(text);
         elements.charCount.textContent = FormatterModule.countCharacters(text);
     }
@@ -522,13 +516,14 @@
             return;
         }
 
-        const textarea = elements.editorTextarea;
-        const cursorPos = textarea.selectionStart;
-        const textBefore = textarea.value.substring(0, cursorPos);
-        const textAfter = textarea.value.substring(cursorPos);
+        const editor = elements.editorTextarea;
+        const cursorPos = FormatterModule.getCursorOffset(editor);
+        const fullText = FormatterModule.getPlainText(editor);
+        const textBefore = fullText.substring(0, cursorPos);
+        const textAfter = fullText.substring(cursorPos);
 
         // Save state for undo
-        StorageModule.pushHistory(textarea.value);
+        StorageModule.pushHistory(fullText);
         state.cursorPositionBeforeGeneration = cursorPos;
 
         // Update UI
@@ -541,42 +536,37 @@
             textAfter,
             settings,
             // onChunk - called for each streaming chunk
-            (chunk, fullText) => {
-                const newText = textBefore + fullText + textAfter;
-                textarea.value = newText;
+            (chunk, generatedText) => {
+                const newText = textBefore + generatedText + textAfter;
+                FormatterModule.setPlainText(editor, newText);
                 
                 // Keep cursor at end of generated text
-                const newCursorPos = textBefore.length + fullText.length;
-                textarea.setSelectionRange(newCursorPos, newCursorPos);
+                const newCursorPos = textBefore.length + generatedText.length;
+                FormatterModule.setCursorOffset(editor, newCursorPos);
                 
                 // Scroll to cursor
                 scrollToCursor();
                 
                 // Update stats
                 updateStats();
-                
-                // Update preview if active
-                if (state.isFormatPreviewActive) {
-                    updateFormatPreview();
-                }
             },
             // onComplete - called when generation finishes
-            (fullText) => {
-                const finalText = textBefore + fullText + textAfter;
-                textarea.value = finalText;
+            (generatedText) => {
+                const finalText = textBefore + generatedText + textAfter;
+                FormatterModule.setPlainText(editor, finalText);
                 
                 // Position cursor after generated text
-                const newCursorPos = textBefore.length + fullText.length;
-                textarea.setSelectionRange(newCursorPos, newCursorPos);
+                const newCursorPos = textBefore.length + generatedText.length;
+                FormatterModule.setCursorOffset(editor, newCursorPos);
                 
                 setGeneratingState(false);
                 updateStats();
                 
                 // Save to history
-                StorageModule.pushHistory(textarea.value);
+                StorageModule.pushHistory(finalText);
                 
                 // Show info
-                const wordCount = FormatterModule.countWords(fullText);
+                const wordCount = FormatterModule.countWords(generatedText);
                 elements.generationInfo.textContent = `Generated ${wordCount} words`;
                 
                 setTimeout(() => {
@@ -627,36 +617,32 @@
             elements.loadingOverlay.classList.toggle('hidden', !isGenerating);
         }
 
-        // Disable/enable textarea during non-streaming generation
+        // Disable/enable contenteditable during non-streaming generation
         if (!settings.streaming) {
-            elements.editorTextarea.readOnly = isGenerating;
+            elements.editorTextarea.contentEditable = !isGenerating;
         }
     }
 
     /**
-     * Scrolls the textarea to keep cursor visible
+     * Scrolls the editor to keep cursor visible
      */
     function scrollToCursor() {
-        const textarea = elements.editorTextarea;
-        const cursorPos = textarea.selectionStart;
+        const editor = elements.editorTextarea;
+        const selection = window.getSelection();
         
-        // Create a temporary element to measure
-        const temp = document.createElement('div');
-        temp.style.cssText = window.getComputedStyle(textarea).cssText;
-        temp.style.height = 'auto';
-        temp.style.position = 'absolute';
-        temp.style.visibility = 'hidden';
-        temp.style.whiteSpace = 'pre-wrap';
-        temp.textContent = textarea.value.substring(0, cursorPos);
+        if (!selection.rangeCount) return;
         
-        document.body.appendChild(temp);
-        const scrollTarget = temp.scrollHeight;
-        document.body.removeChild(temp);
+        const range = selection.getRangeAt(0);
+        const rect = range.getBoundingClientRect();
+        const editorRect = editor.getBoundingClientRect();
         
-        // Scroll to cursor position
-        const viewportHeight = textarea.clientHeight;
-        if (scrollTarget > textarea.scrollTop + viewportHeight - 100) {
-            textarea.scrollTop = scrollTarget - viewportHeight + 100;
+        // Check if cursor is below viewport
+        if (rect.bottom > editorRect.bottom - 100) {
+            editor.scrollTop += (rect.bottom - editorRect.bottom + 100);
+        }
+        // Check if cursor is above viewport
+        else if (rect.top < editorRect.top + 100) {
+            editor.scrollTop -= (editorRect.top - rect.top + 100);
         }
     }
 
@@ -668,13 +654,11 @@
      * Handles undo action
      */
     function handleUndo() {
-        const previousContent = StorageModule.undo(elements.editorTextarea.value);
+        const currentContent = FormatterModule.getPlainText(elements.editorTextarea);
+        const previousContent = StorageModule.undo(currentContent);
         if (previousContent !== null) {
-            elements.editorTextarea.value = previousContent;
+            FormatterModule.setPlainText(elements.editorTextarea, previousContent);
             updateStats();
-            if (state.isFormatPreviewActive) {
-                updateFormatPreview();
-            }
         }
     }
 
@@ -682,13 +666,11 @@
      * Handles redo action
      */
     function handleRedo() {
-        const nextContent = StorageModule.redo(elements.editorTextarea.value);
+        const currentContent = FormatterModule.getPlainText(elements.editorTextarea);
+        const nextContent = StorageModule.redo(currentContent);
         if (nextContent !== null) {
-            elements.editorTextarea.value = nextContent;
+            FormatterModule.setPlainText(elements.editorTextarea, nextContent);
             updateStats();
-            if (state.isFormatPreviewActive) {
-                updateFormatPreview();
-            }
         }
     }
 
@@ -707,12 +689,12 @@
         try {
             const content = await StorageModule.readFile(file);
             
-            if (elements.editorTextarea.value.trim() && 
+            if (FormatterModule.getPlainText(elements.editorTextarea).trim() && 
                 !confirm('Load this file? Current content will be replaced.')) {
                 return;
             }
 
-            elements.editorTextarea.value = content;
+            FormatterModule.setPlainText(elements.editorTextarea, content);
             StorageModule.pushHistory(content);
             updateStats();
             
@@ -725,40 +707,7 @@
         e.target.value = '';
     }
 
-    // ========================================
-    // FORMAT PREVIEW
-    // ========================================
 
-    /**
-     * Toggles the format preview mode
-     */
-    function toggleFormatPreview() {
-        state.isFormatPreviewActive = !state.isFormatPreviewActive;
-
-        if (state.isFormatPreviewActive) {
-            updateFormatPreview();
-            elements.editorPreview.classList.remove('hidden');
-            elements.editorTextarea.classList.add('hidden');
-            elements.btnFormatToggle.textContent = '📝 Edit';
-        } else {
-            elements.editorPreview.classList.add('hidden');
-            elements.editorTextarea.classList.remove('hidden');
-            elements.btnFormatToggle.textContent = '🎨 Format';
-            elements.editorTextarea.focus();
-        }
-    }
-
-    /**
-     * Updates the format preview with current content
-     */
-    function updateFormatPreview() {
-        const formatting = getFormattingSettings();
-        const formattedHtml = FormatterModule.formatText(
-            elements.editorTextarea.value,
-            formatting
-        );
-        elements.editorPreview.innerHTML = formattedHtml;
-    }
 
     // ========================================
     // FULLSCREEN MODE
@@ -830,9 +779,8 @@
         FormatterModule.applyFormatting(formatting);
         StorageModule.saveFormatting(formatting);
         
-        if (state.isFormatPreviewActive) {
-            updateFormatPreview();
-        }
+        // Reapply real-time formatting with new colors
+        FormatterModule.applyRealtimeFormatting(elements.editorTextarea);
     }
 
     /**
@@ -889,7 +837,7 @@
     function loadSavedDocument() {
         const doc = StorageModule.loadDocument();
         if (doc && doc.content) {
-            elements.editorTextarea.value = doc.content;
+            FormatterModule.setPlainText(elements.editorTextarea, doc.content);
             updateStats();
         }
     }
@@ -902,7 +850,8 @@
      * Saves the current document
      */
     function saveDocument() {
-        StorageModule.saveDocument(elements.editorTextarea.value);
+        const text = FormatterModule.getPlainText(elements.editorTextarea);
+        StorageModule.saveDocument(text);
         state.lastSaveTime = Date.now();
         updateAutosaveStatus();
     }
@@ -931,7 +880,8 @@
     function startAutoSave() {
         // Auto-save every 30 seconds
         state.autoSaveInterval = setInterval(() => {
-            if (elements.editorTextarea.value.trim()) {
+            const text = FormatterModule.getPlainText(elements.editorTextarea);
+            if (text.trim()) {
                 saveDocument();
             }
         }, 30000);

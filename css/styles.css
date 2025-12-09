@@ -760,7 +760,7 @@ body {
     font-weight: 500;
 }
 
-/* Main Text Area */
+/* Main Text Area (contenteditable) */
 .editor-textarea {
     width: 100%;
     height: 100%;
@@ -772,15 +772,34 @@ body {
     font-size: var(--editor-font-size);
     line-height: var(--editor-line-height);
     color: var(--text-primary);
-    resize: none;
     outline: none;
     box-shadow: 0 4px 20px var(--shadow-color);
     text-align: justify;
     overflow-y: auto;
+    white-space: pre-wrap;
+    word-wrap: break-word;
 }
 
-.editor-textarea::placeholder {
+/* Placeholder for contenteditable */
+.editor-textarea:empty:before {
+    content: attr(data-placeholder);
     color: var(--text-muted);
+    font-style: italic;
+    pointer-events: none;
+}
+
+/* Formatting spans within contenteditable */
+.editor-textarea .dialogue {
+    color: var(--dialogue-color);
+}
+
+.editor-textarea .thoughts {
+    color: var(--thoughts-color);
+    font-style: italic;
+}
+
+.editor-textarea .emphasis {
+    color: var(--emphasis-color);
     font-style: italic;
 }
 
@@ -802,46 +821,7 @@ body {
     background: rgba(0, 0, 0, 0.25);
 }
 
-/* Formatted Preview Overlay */
-.editor-preview {
-    width: 100%;
-    height: 100%;
-    padding: 40px 60px;
-    border-radius: var(--radius-lg);
-    background: var(--bg-editor);
-    font-family: var(--font-editor);
-    font-size: var(--editor-font-size);
-    line-height: var(--editor-line-height);
-    color: var(--text-primary);
-    box-shadow: 0 4px 20px var(--shadow-color);
-    text-align: justify;
-    overflow-y: auto;
-    white-space: pre-wrap;
-    word-wrap: break-word;
-}
 
-.editor-preview.hidden {
-    display: none;
-}
-
-/* Formatted Text Styles */
-.editor-preview .dialogue {
-    color: var(--dialogue-color);
-}
-
-.editor-preview .thoughts {
-    color: var(--thoughts-color);
-    font-style: italic;
-}
-
-.editor-preview .emphasis {
-    color: var(--emphasis-color);
-    font-style: italic;
-}
-
-.editor-preview p {
-    margin-bottom: var(--editor-paragraph-spacing);
-}
 
 /* Editor Footer */
 .editor-footer {
