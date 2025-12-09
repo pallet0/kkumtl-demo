@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Key Encoder - Developer Tool</title>
+    <style>
+        /* ========================================
+           ENCODER TOOL STYLES
+           ======================================== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 700px;
+            width: 100%;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            color: #1a1a2e;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .warning {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 25px;
+            color: #856404;
+            font-size: 14px;
+        }
+
+        .warning strong {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+        }
+
+        input[type="text"],
+        input[type="password"],
+        textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 14px;
+            transition: border-color 0.3s, box-shadow 0.3s;
+            font-family: 'Courier New', monospace;
+        }
+
+        input:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+        }
+
+        textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 25px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 14px 24px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(17, 153, 142, 0.4);
+        }
+
+        .result-section {
+            margin-top: 30px;
+            padding-top: 25px;
+            border-top: 2px dashed #e0e0e0;
+        }
+
+        .result-section h3 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .output-box {
+            background: #f8f9fa;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            word-break: break-all;
+            max-height: 200px;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .copy-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .output-wrapper {
+            position: relative;
+        }
+
+        .instructions {
+            background: #e8f4fd;
+            border: 1px solid #bee5eb;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 20px;
+            font-size: 13px;
+            color: #0c5460;
+        }
+
+        .instructions h4 {
+            margin-bottom: 10px;
+        }
+
+        .instructions ol {
+            margin-left: 20px;
+        }
+
+        .instructions li {
+            margin-bottom: 5px;
+        }
+
+        code {
+            background: rgba(0, 0, 0, 0.1);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .success-msg {
+            color: #28a745;
+            font-weight: 600;
+            margin-top: 10px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 API Key Encoder</h1>
+        <p class="subtitle">Developer tool for encrypting Gemini API keys</p>
+
+        <div class="warning">
+            <strong>⚠️ Security Notice</strong>
+            This tool creates encrypted API keys that can only be decrypted with the password you set.
+            Keep your password secure and never share it publicly. The encryption uses AES-GCM with
+            PBKDF2 key derivation for strong security.
+        </div>
+
+        <!-- Encoding Section -->
+        <div class="form-group">
+            <label for="api-key">Gemini API Key</label>
+            <input type="password" id="api-key" placeholder="Enter your Gemini API key...">
+        </div>
+
+        <div class="form-group">
+            <label for="encode-password">Encryption Password</label>
+            <input type="password" id="encode-password" placeholder="Create a strong password...">
+        </div>
+
+        <div class="btn-group">
+            <button class="btn btn-primary" onclick="encodeApiKey()">🔒 Encrypt API Key</button>
+            <button class="btn btn-secondary" onclick="testDecryption()">🔓 Test Decryption</button>
+        </div>
+
+        <!-- Results Section -->
+        <div class="result-section">
+            <h3>📦 Encrypted Output</h3>
+            <div class="output-wrapper">
+                <div class="output-box" id="encrypted-output">
+                    Encrypted data will appear here...
+                </div>
+                <button class="copy-btn" onclick="copyOutput()">📋 Copy</button>
+            </div>
+            <p class="success-msg" id="copy-success">✓ Copied to clipboard!</p>
+
+            <div class="instructions">
+                <h4>📝 How to use:</h4>
+                <ol>
+                    <li>Enter your Gemini API key and create a password</li>
+                    <li>Click "Encrypt API Key" to generate the encrypted string</li>
+                    <li>Copy the encrypted output</li>
+                    <li>Paste it into <code>js/crypto.js</code> in the <code>ENCRYPTED_API_KEY</code> constant</li>
+                    <li>Share the password with authorized users (not the API key!)</li>
+                    <li>Use "Test Decryption" to verify the encryption works</li>
+                </ol>
+            </div>
+        </div>
+
+        <!-- Decryption Test Section -->
+        <div class="result-section">
+            <h3>🧪 Decryption Test</h3>
+            <div class="form-group">
+                <label for="test-encrypted">Encrypted String (paste to test)</label>
+                <textarea id="test-encrypted" placeholder="Paste encrypted string here..."></textarea>
+            </div>
+            <div class="form-group">
+                <label for="test-password">Test Password</label>
+                <input type="password" id="test-password" placeholder="Enter password to test...">
+            </div>
+            <div class="output-wrapper">
+                <div class="output-box" id="decrypted-output">
+                    Decrypted result will appear here...
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /**
+         * ========================================
+         * ENCRYPTION UTILITIES
+         * Using Web Crypto API for secure encryption
+         * ========================================
+         */
+
+        /**
+         * Converts a string to ArrayBuffer
+         * @param {string} str - Input string
+         * @returns {ArrayBuffer} - Resulting buffer
+         */
+        function stringToBuffer(str) {
+            return new TextEncoder().encode(str);
+        }
+
+        /**
+         * Converts ArrayBuffer to string
+         * @param {ArrayBuffer} buffer - Input buffer
+         * @returns {string} - Resulting string
+         */
+        function bufferToString(buffer) {
+            return new TextDecoder().decode(buffer);
+        }
+
+        /**
+         * Converts ArrayBuffer to Base64 string
+         * @param {ArrayBuffer} buffer - Input buffer
+         * @returns {string} - Base64 encoded string
+         */
+        function bufferToBase64(buffer) {
+            const bytes = new Uint8Array(buffer);
+            let binary = '';
+            for (let i = 0; i < bytes.byteLength; i++) {
+                binary += String.fromCharCode(bytes[i]);
+            }
+            return btoa(binary);
+        }
+
+        /**
+         * Converts Base64 string to ArrayBuffer
+         * @param {string} base64 - Base64 encoded string
+         * @returns {ArrayBuffer} - Resulting buffer
+         */
+        function base64ToBuffer(base64) {
+            const binary = atob(base64);
+            const bytes = new Uint8Array(binary.length);
+            for (let i = 0; i < binary.length; i++) {
+                bytes[i] = binary.charCodeAt(i);
+            }
+            return bytes.buffer;
+        }
+
+        /**
+         * Derives an encryption key from a password using PBKDF2
+         * @param {string} password - User password
+         * @param {Uint8Array} salt - Random salt
+         * @returns {Promise<CryptoKey>} - Derived key
+         */
+        async function deriveKey(password, salt) {
+            // Import password as key material
+            const keyMaterial = await crypto.subtle.importKey(
+                'raw',
+                stringToBuffer(password),
+                'PBKDF2',
+                false,
+                ['deriveKey']
+            );
+
+            // Derive AES-GCM key using PBKDF2
+            return crypto.subtle.deriveKey(
+                {
+                    name: 'PBKDF2',
+                    salt: salt,
+                    iterations: 100000, // High iteration count for security
+                    hash: 'SHA-256'
+                },
+                keyMaterial,
+                { name: 'AES-GCM', length: 256 },
+                false,
+                ['encrypt', 'decrypt']
+            );
+        }
+
+        /**
+         * Encrypts plaintext using AES-GCM
+         * @param {string} plaintext - Text to encrypt
+         * @param {string} password - Encryption password
+         * @returns {Promise<string>} - Base64 encoded encrypted data
+         */
+        async function encrypt(plaintext, password) {
+            // Generate random salt and IV
+            const salt = crypto.getRandomValues(new Uint8Array(16));
+            const iv = crypto.getRandomValues(new Uint8Array(12));
+            
+            // Derive key from password
+            const key = await deriveKey(password, salt);
+            
+            // Encrypt the data
+            const encrypted = await crypto.subtle.encrypt(
+                { name: 'AES-GCM', iv: iv },
+                key,
+                stringToBuffer(plaintext)
+            );
+
+            // Combine salt + iv + encrypted data
+            const combined = new Uint8Array(salt.length + iv.length + encrypted.byteLength);
+            combined.set(salt, 0);
+            combined.set(iv, salt.length);
+            combined.set(new Uint8Array(encrypted), salt.length + iv.length);
+
+            // Return as base64
+            return bufferToBase64(combined.buffer);
+        }
+
+        /**
+         * Decrypts ciphertext using AES-GCM
+         * @param {string} ciphertext - Base64 encoded encrypted data
+         * @param {string} password - Decryption password
+         * @returns {Promise<string>} - Decrypted plaintext
+         */
+        async function decrypt(ciphertext, password) {
+            // Decode base64
+            const combined = new Uint8Array(base64ToBuffer(ciphertext));
+            
+            // Extract salt, iv, and encrypted data
+            const salt = combined.slice(0, 16);
+            const iv = combined.slice(16, 28);
+            const encrypted = combined.slice(28);
+
+            // Derive key from password
+            const key = await deriveKey(password, salt);
+
+            // Decrypt the data
+            const decrypted = await crypto.subtle.decrypt(
+                { name: 'AES-GCM', iv: iv },
+                key,
+                encrypted
+            );
+
+            return bufferToString(decrypted);
+        }
+
+        /**
+         * Encrypts the API key and displays the result
+         */
+        async function encodeApiKey() {
+            const apiKey = document.getElementById('api-key').value.trim();
+            const password = document.getElementById('encode-password').value;
+
+            if (!apiKey) {
+                alert('Please enter an API key');
+                return;
+            }
+
+            if (!password || password.length < 8) {
+                alert('Please enter a password with at least 8 characters');
+                return;
+            }
+
+            try {
+                const encrypted = await encrypt(apiKey, password);
+                document.getElementById('encrypted-output').textContent = encrypted;
+                document.getElementById('test-encrypted').value = encrypted;
+                
+                alert('✅ API key encrypted successfully!\n\nCopy the encrypted string and paste it into crypto.js');
+            } catch (error) {
+                alert('❌ Encryption failed: ' + error.message);
+            }
+        }
+
+        /**
+         * Tests decryption with the provided encrypted string and password
+         */
+        async function testDecryption() {
+            const encrypted = document.getElementById('test-encrypted').value.trim();
+            const password = document.getElementById('test-password').value;
+
+            if (!encrypted) {
+                alert('Please enter an encrypted string to test');
+                return;
+            }
+
+            if (!password) {
+                alert('Please enter the password');
+                return;
+            }
+
+            try {
+                const decrypted = await decrypt(encrypted, password);
+                document.getElementById('decrypted-output').textContent = 
+                    '✅ Decryption successful!\n\nDecrypted value (first 10 chars): ' + 
+                    decrypted.substring(0, 10) + '...' +
+                    '\n\nFull length: ' + decrypted.length + ' characters';
+            } catch (error) {
+                document.getElementById('decrypted-output').textContent = 
+                    '❌ Decryption failed!\n\nThis could mean:\n' +
+                    '• Wrong password\n' +
+                    '• Corrupted encrypted data\n' +
+                    '• Invalid format\n\n' +
+                    'Error: ' + error.message;
+            }
+        }
+
+        /**
+         * Copies the encrypted output to clipboard
+         */
+        async function copyOutput() {
+            const output = document.getElementById('encrypted-output').textContent;
+            
+            if (output === 'Encrypted data will appear here...') {
+                alert('Nothing to copy yet!');
+                return;
+            }
+
+            try {
+                await navigator.clipboard.writeText(output);
+                const successMsg = document.getElementById('copy-success');
+                successMsg.style.display = 'block';
+                setTimeout(() => {
+                    successMsg.style.display = 'none';
+                }, 2000);
+            } catch (error) {
+                alert('Failed to copy: ' + error.message);
+            }
+        }
+    </script>
+</body>
+</html>
