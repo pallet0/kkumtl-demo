@@ -1,6 +1,6 @@
 // Configuration and Constants
 const CONFIG = {
-    API_ENDPOINT: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:streamGenerateContent',
+    API_ENDPOINT: 'https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:streamGenerateContent',
     DEFAULT_TEMPERATURE: 0.7,
     DEFAULT_TOP_K: 40,
     DEFAULT_MAX_WORDS: 500,
