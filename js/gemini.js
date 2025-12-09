@@ -13,7 +13,7 @@ const GeminiModule = (function() {
     // API CONFIGURATION
     // ========================================
     
-    const API_BASE_URL = 'https://generativelanguage.googleapis.com/v1beta/models';
+    const API_BASE_URL = 'https://generativelanguage.googleapis.com/v1/models';
     
     // Store the API key after decryption
     let apiKey = null;
@@ -21,16 +21,7 @@ const GeminiModule = (function() {
     // AbortController for cancelling requests
     let currentController = null;
 
-    // ========================================
-    // SYSTEM PROMPT TEMPLATE
-    // This is the master prompt that guides
-    // the AI's writing style and behavior
-    // ========================================
-    
-    /**
-     * IMPORTANT: Edit this prompt to customize the AI's writing behavior
-     * This prompt is crucial for generating high-quality novel content
-     */
+    // System prompt (now embedded in user message for v1 API)
     const SYSTEM_PROMPT_TEMPLATE = `You are an expert creative writer and novelist. Your task is to continue writing a story seamlessly from where the text ends.
 
 CRITICAL INSTRUCTIONS:
@@ -179,17 +170,17 @@ Remember: Your output will be directly appended to the existing text. Start writ
         try {
             const systemPrompt = buildSystemPrompt(settings);
             
-            // Build the user prompt
-            let userPrompt = '';
+            // Build the user prompt (v1 API doesn't support systemInstruction, so combine it with user message)
+            let userPrompt = systemPrompt + '\n\n---\n\n';
             
             if (textBefore.trim()) {
-                userPrompt = `Continue writing from here:\n\n${textBefore}`;
+                userPrompt += `Continue writing from here:\n\n${textBefore}`;
                 
                 if (textAfter.trim()) {
                     userPrompt += `\n\n[Note: The text that follows is: "${textAfter.substring(0, 100)}..." - ensure your continuation flows naturally into this]`;
                 }
             } else {
-                userPrompt = `Start writing a new ${settings.genre} story in the ${settings.style} style. Begin immediately with the narrative.`;
+                userPrompt += `Start writing a new ${settings.genre} story in the ${settings.style} style. Begin immediately with the narrative.`;
             }
 
             const requestBody = {
@@ -199,21 +190,12 @@ Remember: Your output will be directly appended to the existing text. Start writ
                         parts: [{ text: userPrompt }]
                     }
                 ],
-                systemInstruction: {
-                    parts: [{ text: systemPrompt }]
-                },
                 generationConfig: {
                     temperature: settings.temperature || 0.8,
                     maxOutputTokens: Math.ceil((settings.maxWords || 150) * 1.5), // Approximate tokens
                     topP: 0.95,
                     topK: 40
-                },
-                safetySettings: [
-                    { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_NONE' },
-                    { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_NONE' },
-                    { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_NONE' },
-                    { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_NONE' }
-                ]
+                }
             };
 
             if (settings.streaming) {
@@ -240,7 +222,7 @@ Remember: Your output will be directly appended to the existing text. Start writ
      * @param {Function} onError - Error callback
      */
     async function generateWithStreaming(model, requestBody, onChunk, onComplete, onError) {
-        const url = `${API_BASE_URL}/${model}:streamGenerateContent?alt=sse&key=${apiKey}`;
+        const url = `${API_BASE_URL}/${model}:streamGenerateContent?key=${apiKey}`;
 
         try {
             const response = await fetch(url, {
@@ -269,27 +251,24 @@ Remember: Your output will be directly appended to the existing text. Start writ
 
                 buffer += decoder.decode(value, { stream: true });
                 
-                // Process complete SSE messages
+                // Process JSON objects separated by newlines (NDJSON format)
                 const lines = buffer.split('\n');
                 buffer = lines.pop() || ''; // Keep incomplete line in buffer
 
                 for (const line of lines) {
-                    if (line.startsWith('data: ')) {
-                        const jsonStr = line.slice(6);
-                        if (jsonStr.trim() === '[DONE]') continue;
+                    if (!line.trim()) continue;
+                    
+                    try {
+                        const data = JSON.parse(line);
+                        const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
                         
-                        try {
-                            const data = JSON.parse(jsonStr);
-                            const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-                            
-                            if (text) {
-                                fullText += text;
-                                onChunk(text, fullText);
-                            }
-                        } catch (e) {
-                            // Skip malformed JSON
-                            console.warn('Skipping malformed SSE data:', e);
+                        if (text) {
+                            fullText += text;
+                            onChunk(text, fullText);
                         }
+                    } catch (e) {
+                        // Skip malformed JSON
+                        console.warn('Skipping malformed JSON:', e);
                     }
                 }
             }
