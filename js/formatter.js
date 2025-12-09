@@ -1,8 +1,8 @@
 /**
  * ========================================
  * FORMATTER MODULE
- * Handles text formatting and highlighting
- * for the novel preview
+ * Handles real-time text formatting and highlighting
+ * for contenteditable elements
  * ========================================
  */
 
@@ -22,62 +22,127 @@ const FormatterModule = (function() {
         thoughts: /'([^']+)'/g,
         
         // Asterisk emphasis: *important*
-        emphasis: /\*([^*]+)\*/g,
-        
-        // Paragraph breaks (2+ newlines)
-        paragraph: /\n\n+/g
+        emphasis: /\*([^*]+)\*/g
     };
 
     // ========================================
-    // TEXT FORMATTING
+    // CURSOR POSITION MANAGEMENT
     // ========================================
 
     /**
-     * Formats plain text into HTML with highlighting
-     * @param {string} text - Plain text content
-     * @param {Object} colors - Color settings for formatting
-     * @returns {string} - HTML formatted text
+     * Saves the current cursor position
+     * @param {HTMLElement} element - Contenteditable element
+     * @returns {Object|null} - Saved position data
      */
-    function formatText(text, colors) {
-        if (!text) return '';
+    function saveCursorPosition(element) {
+        const selection = window.getSelection();
+        if (!selection.rangeCount) return null;
 
-        // Split into paragraphs first
-        const paragraphs = text.split(/\n\n+/);
+        const range = selection.getRangeAt(0);
+        const preSelectionRange = range.cloneRange();
+        preSelectionRange.selectNodeContents(element);
+        preSelectionRange.setEnd(range.startContainer, range.startOffset);
+        
+        const start = preSelectionRange.toString().length;
+        
+        return {
+            start: start,
+            end: start + range.toString().length
+        };
+    }
 
-        // Format each paragraph
-        const formattedParagraphs = paragraphs.map(paragraph => {
-            if (!paragraph.trim()) return '';
+    /**
+     * Restores cursor position
+     * @param {HTMLElement} element - Contenteditable element
+     * @param {Object} savedPosition - Previously saved position
+     */
+    function restoreCursorPosition(element, savedPosition) {
+        if (!savedPosition) return;
 
-            let formatted = paragraph;
+        const selection = window.getSelection();
+        const range = document.createRange();
+        
+        let charIndex = 0;
+        let nodeStack = [element];
+        let node, foundStart = false, stop = false;
+        
+        // Get total text length for bounds checking
+        const totalLength = element.textContent.length;
+        const safeStart = Math.min(savedPosition.start, totalLength);
+        const safeEnd = Math.min(savedPosition.end, totalLength);
+        
+        while (!stop && (node = nodeStack.pop())) {
+            if (node.nodeType === Node.TEXT_NODE) {
+                const nextCharIndex = charIndex + node.length;
+                if (!foundStart && safeStart >= charIndex && safeStart <= nextCharIndex) {
+                    range.setStart(node, Math.min(safeStart - charIndex, node.length));
+                    foundStart = true;
+                }
+                if (foundStart && safeEnd >= charIndex && safeEnd <= nextCharIndex) {
+                    range.setEnd(node, Math.min(safeEnd - charIndex, node.length));
+                    stop = true;
+                }
+                charIndex = nextCharIndex;
+            } else {
+                let i = node.childNodes.length;
+                while (i--) {
+                    nodeStack.push(node.childNodes[i]);
+                }
+            }
+        }
+        
+        selection.removeAllRanges();
+        selection.addRange(range);
+    }
 
-            // Apply dialogue formatting (double quotes) - BEFORE escaping HTML
-            formatted = formatted.replace(
-                /"([^"]+)"/g,
-                (match, content) => `<span class="dialogue" style="color: ${colors.dialogueColor}">"${escapeHtml(content)}"</span>`
-            );
+    // ========================================
+    // REAL-TIME FORMATTING
+    // ========================================
 
-            // Apply thoughts formatting (single quotes) - BEFORE escaping HTML
-            formatted = formatted.replace(
-                /'([^']+)'/g,
-                (match, content) => `<span class="thoughts" style="color: ${colors.thoughtsColor}">'${escapeHtml(content)}'</span>`
-            );
-
-            // Apply emphasis formatting (asterisks) - BEFORE escaping HTML
-            formatted = formatted.replace(
-                /\*([^*]+)\*/g,
-                (match, content) => `<span class="emphasis" style="color: ${colors.emphasisColor}">${escapeHtml(content)}</span>`
-            );
-
-            // Escape any remaining unformatted HTML
-            formatted = formatted.replace(/(<span class="(?:dialogue|thoughts|emphasis)"[^>]*>.*?<\/span>)|([^<]+)/g, (match, span, text) => {
-                if (span) return span; // Already processed
-                return escapeHtml(text); // Escape remaining text
-            });
-
-            return `<p>${formatted}</p>`;
-        });
-
-        return formattedParagraphs.join('');
+    /**
+     * Applies real-time formatting to contenteditable element
+     * Note: This function runs on every input event. For very large documents,
+     * consider implementing debouncing or a diffing algorithm.
+     * @param {HTMLElement} element - Contenteditable element
+     */
+    function applyRealtimeFormatting(element) {
+        // Save cursor position
+        const cursorPos = saveCursorPosition(element);
+        
+        // Get plain text content
+        const text = element.textContent;
+        
+        // Build formatted HTML
+        let formattedHtml = escapeHtml(text);
+        
+        // Apply formatting patterns (in reverse order to handle overlaps properly)
+        // We use a placeholder system to avoid nested replacements
+        
+        // 1. Dialogue (double quotes)
+        formattedHtml = formattedHtml.replace(
+            /&quot;([^&quot;]+)&quot;/g,
+            (match, content) => `<span class="dialogue">"${content}"</span>`
+        );
+        
+        // 2. Thoughts (single quotes) - need to be careful with apostrophes
+        formattedHtml = formattedHtml.replace(
+            /&#39;([^&#39;]+)&#39;/g,
+            (match, content) => `<span class="thoughts">'${content}'</span>`
+        );
+        
+        // 3. Emphasis (asterisks) - content is already escaped
+        formattedHtml = formattedHtml.replace(
+            /\*([^*]+)\*/g,
+            (match, content) => `<span class="emphasis">${content}</span>`
+        );
+        
+        // Only update if content changed
+        if (element.innerHTML !== formattedHtml) {
+            element.innerHTML = formattedHtml;
+            
+            // Restore cursor position
+            restoreCursorPosition(element, cursorPos);
+        }
     }
 
     /**
@@ -86,12 +151,76 @@ const FormatterModule = (function() {
      * @returns {string} - Escaped text
      */
     function escapeHtml(text) {
-        const escapeMap = {
-            '&': '&amp;',
-            '<': '&lt;',
-            '>': '&gt;'
-        };
-        return text.replace(/[&<>]/g, char => escapeMap[char]);
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    /**
+     * Gets plain text from contenteditable (without formatting)
+     * @param {HTMLElement} element - Contenteditable element
+     * @returns {string} - Plain text
+     */
+    function getPlainText(element) {
+        return element.textContent || '';
+    }
+
+    /**
+     * Sets plain text content in contenteditable
+     * @param {HTMLElement} element - Contenteditable element
+     * @param {string} text - Text to set
+     */
+    function setPlainText(element, text) {
+        const cursorPos = saveCursorPosition(element);
+        element.textContent = text;
+        applyRealtimeFormatting(element);
+        if (cursorPos) {
+            restoreCursorPosition(element, cursorPos);
+        }
+    }
+
+    /**
+     * Inserts text at cursor position
+     * @param {HTMLElement} element - Contenteditable element
+     * @param {string} text - Text to insert
+     */
+    function insertTextAtCursor(element, text) {
+        const selection = window.getSelection();
+        if (!selection.rangeCount) return;
+        
+        const range = selection.getRangeAt(0);
+        range.deleteContents();
+        
+        const textNode = document.createTextNode(text);
+        range.insertNode(textNode);
+        
+        // Move cursor to end of inserted text
+        range.setStartAfter(textNode);
+        range.setEndAfter(textNode);
+        selection.removeAllRanges();
+        selection.addRange(range);
+        
+        // Apply formatting
+        applyRealtimeFormatting(element);
+    }
+
+    /**
+     * Gets cursor offset in plain text
+     * @param {HTMLElement} element - Contenteditable element
+     * @returns {number} - Cursor offset
+     */
+    function getCursorOffset(element) {
+        const pos = saveCursorPosition(element);
+        return pos ? pos.start : 0;
+    }
+
+    /**
+     * Sets cursor position by offset
+     * @param {HTMLElement} element - Contenteditable element
+     * @param {number} offset - Character offset
+     */
+    function setCursorOffset(element, offset) {
+        restoreCursorPosition(element, { start: offset, end: offset });
     }
 
     // ========================================
@@ -215,13 +344,17 @@ const FormatterModule = (function() {
     }
 
     /**
-     * Gets cursor position info (line and column)
-     * @param {HTMLTextAreaElement} textarea - Textarea element
+     * Gets cursor position info (line and column) for contenteditable
+     * @param {HTMLElement} element - Contenteditable element
      * @returns {Object} - Line and column numbers
      */
-    function getCursorPosition(textarea) {
-        const cursorPos = textarea.selectionStart;
-        const textBeforeCursor = textarea.value.substring(0, cursorPos);
+    function getCursorPosition(element) {
+        const pos = saveCursorPosition(element);
+        if (!pos) {
+            return { line: 1, column: 1 };
+        }
+        
+        const textBeforeCursor = element.textContent.substring(0, pos.start);
         const lines = textBeforeCursor.split('\n');
         
         return {
@@ -235,7 +368,17 @@ const FormatterModule = (function() {
     // ========================================
 
     return {
-        formatText,
+        // Real-time formatting functions
+        applyRealtimeFormatting,
+        saveCursorPosition,
+        restoreCursorPosition,
+        getPlainText,
+        setPlainText,
+        insertTextAtCursor,
+        getCursorOffset,
+        setCursorOffset,
+        
+        // Utility functions
         escapeHtml,
         applyFormatting,
         getPreset,

@@ -226,9 +226,6 @@
                         </button>
                     </div>
                     <div class="toolbar-right">
-                        <button id="btn-format-toggle" class="toolbar-btn" title="Toggle Formatting Preview">
-                            🎨 Format
-                        </button>
                         <button id="btn-fullscreen" class="toolbar-btn" title="Toggle Fullscreen">
                             ⛶ Focus
                         </button>
@@ -243,19 +240,17 @@
                         <span class="loading-text">Generating...</span>
                     </div>
 
-                    <!-- Main Text Area (for editing) -->
-                    <textarea id="editor-textarea" 
-                              class="editor-textarea" 
-                              placeholder="Start writing your story here, or click Generate to let AI begin...
+                    <!-- Main Text Area (contenteditable for real-time formatting) -->
+                    <div id="editor-textarea" 
+                         class="editor-textarea" 
+                         contenteditable="true"
+                         data-placeholder="Start writing your story here, or click Generate to let AI begin...
 
 Tips:
 - Place your cursor where you want AI to continue writing
 - Use Ctrl+Enter to generate
 - Press Escape to stop generation
-- Your text is automatically saved"></textarea>
-
-                    <!-- Formatted Preview (overlay) -->
-                    <div id="editor-preview" class="editor-preview hidden"></div>
+- Your text is automatically saved"></div>
                 </div>
 
                 <!-- Editor Footer -->
