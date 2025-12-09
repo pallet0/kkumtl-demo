@@ -619,7 +619,7 @@
 
         // Disable/enable contenteditable during non-streaming generation
         if (!settings.streaming) {
-            elements.editorTextarea.contentEditable = !isGenerating;
+            elements.editorTextarea.contentEditable = isGenerating ? 'false' : 'true';
         }
     }
 

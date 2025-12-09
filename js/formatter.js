@@ -66,15 +66,20 @@ const FormatterModule = (function() {
         let nodeStack = [element];
         let node, foundStart = false, stop = false;
         
+        // Get total text length for bounds checking
+        const totalLength = element.textContent.length;
+        const safeStart = Math.min(savedPosition.start, totalLength);
+        const safeEnd = Math.min(savedPosition.end, totalLength);
+        
         while (!stop && (node = nodeStack.pop())) {
             if (node.nodeType === Node.TEXT_NODE) {
                 const nextCharIndex = charIndex + node.length;
-                if (!foundStart && savedPosition.start >= charIndex && savedPosition.start <= nextCharIndex) {
-                    range.setStart(node, savedPosition.start - charIndex);
+                if (!foundStart && safeStart >= charIndex && safeStart <= nextCharIndex) {
+                    range.setStart(node, Math.min(safeStart - charIndex, node.length));
                     foundStart = true;
                 }
-                if (foundStart && savedPosition.end >= charIndex && savedPosition.end <= nextCharIndex) {
-                    range.setEnd(node, savedPosition.end - charIndex);
+                if (foundStart && safeEnd >= charIndex && safeEnd <= nextCharIndex) {
+                    range.setEnd(node, Math.min(safeEnd - charIndex, node.length));
                     stop = true;
                 }
                 charIndex = nextCharIndex;
@@ -96,6 +101,8 @@ const FormatterModule = (function() {
 
     /**
      * Applies real-time formatting to contenteditable element
+     * Note: This function runs on every input event. For very large documents,
+     * consider implementing debouncing or a diffing algorithm.
      * @param {HTMLElement} element - Contenteditable element
      */
     function applyRealtimeFormatting(element) {
@@ -123,7 +130,7 @@ const FormatterModule = (function() {
             (match, content) => `<span class="thoughts">'${content}'</span>`
         );
         
-        // 3. Emphasis (asterisks)
+        // 3. Emphasis (asterisks) - content is already escaped
         formattedHtml = formattedHtml.replace(
             /\*([^*]+)\*/g,
             (match, content) => `<span class="emphasis">${content}</span>`
