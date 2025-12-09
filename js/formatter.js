@@ -41,11 +41,8 @@ const FormatterModule = (function() {
     function formatText(text, colors) {
         if (!text) return '';
 
-        // Escape HTML entities first to prevent XSS
-        let html = escapeHtml(text);
-
-        // Split into paragraphs
-        const paragraphs = html.split(PATTERNS.paragraph);
+        // Split into paragraphs first
+        const paragraphs = text.split(/\n\n+/);
 
         // Format each paragraph
         const formattedParagraphs = paragraphs.map(paragraph => {
@@ -53,23 +50,29 @@ const FormatterModule = (function() {
 
             let formatted = paragraph;
 
-            // Apply dialogue formatting (double quotes)
+            // Apply dialogue formatting (double quotes) - BEFORE escaping HTML
             formatted = formatted.replace(
                 /"([^"]+)"/g,
-                `<span class="dialogue" style="color: ${colors.dialogueColor}">"$1"</span>`
+                (match, content) => `<span class="dialogue" style="color: ${colors.dialogueColor}">"${escapeHtml(content)}"</span>`
             );
 
-            // Apply thoughts formatting (single quotes)
+            // Apply thoughts formatting (single quotes) - BEFORE escaping HTML
             formatted = formatted.replace(
                 /'([^']+)'/g,
-                `<span class="thoughts" style="color: ${colors.thoughtsColor}">'$1'</span>`
+                (match, content) => `<span class="thoughts" style="color: ${colors.thoughtsColor}">'${escapeHtml(content)}'</span>`
             );
 
-            // Apply emphasis formatting (asterisks)
+            // Apply emphasis formatting (asterisks) - BEFORE escaping HTML
             formatted = formatted.replace(
                 /\*([^*]+)\*/g,
-                `<span class="emphasis" style="color: ${colors.emphasisColor}">$1</span>`
+                (match, content) => `<span class="emphasis" style="color: ${colors.emphasisColor}">${escapeHtml(content)}</span>`
             );
+
+            // Escape any remaining unformatted HTML
+            formatted = formatted.replace(/(<span class="(?:dialogue|thoughts|emphasis)"[^>]*>.*?<\/span>)|([^<]+)/g, (match, span, text) => {
+                if (span) return span; // Already processed
+                return escapeHtml(text); // Escape remaining text
+            });
 
             return `<p>${formatted}</p>`;
         });

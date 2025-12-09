@@ -24,7 +24,7 @@ const StorageModule = (function() {
     // DEFAULT VALUES
     // ========================================
     const DEFAULT_SETTINGS = {
-        model: 'gemini-1.5-pro',
+        model: 'gemini-2.5-flash',
         temperature: 0.8,
         maxWords: 150,
         paragraphLength: 'medium',

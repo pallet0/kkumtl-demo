@@ -1,32 +1,18 @@
-# AI Novel Writer
+# 꿈틀
 
-A sophisticated AI-powered novel writing application that seamlessly integrates with Google's Gemini API to help writers create compelling stories.
+구글 Gemini의 API의 보조와 함께 자신만의 소설을 만들어봐요.
 
-## Features
+## 특징
 
-- **AI-Powered Writing**: Generate text continuations from any cursor position
-- **Streaming Output**: Watch the AI write in real-time
-- **Customizable Settings**: Adjust temperature, word count, genre, style, and more
-- **Rich Formatting**: Dialogue highlighting, custom colors, and typography options
-- **Multi-Language Support**: Write in English, Korean, or Japanese
-- **Auto-Save**: Never lose your work
-- **Export Options**: Save as .txt or formatted .html
-- **Secure API Key**: Encrypted API key with password protection
+- **다양한 설정**: 장르, temperature, 생성 길이 등을 자유롭게 조절해요.
+- **포매팅**: 대화와 생각을 포매팅으로 더 다채롭게 만들어요.
+- **다중 언어 지원**: 영어, 일본어, 한국어 텍스트 생성을 지원해요.
+- **자동저장**: 지금까지의 작품을 기록해요.
+- **추출**: txt 또는 html 포맷으로 추출이 가능해요.
 
-## Setup Instructions
+## 사용법
 
-### 1. Generate Encrypted API Key
-
-1. Open `encoder.html` in your browser
-2. Enter your Gemini API key
-3. Create a strong password (this will be shared with users)
-4. Click "Encrypt API Key"
-5. Copy the encrypted output
-
-### 2. Configure the Application
-
-1. Open `js/crypto.js`
-2. Replace `YOUR_ENCRYPTED_API_KEY_HERE` with your encrypted key:
-
-```javascript
-const ENCRYPTED_API_KEY = 'your-long-encrypted-string-here';s
+1. 관리자로부터 비밀번호를 받아서 입력해주세요.
+2. 원하는대로 사이드바의 설정을 조절해 주세요.
+3. 원하는 텍스트를 입력한 뒤(입력하지 않아도 돼요), Generate 버튼으로 생성해요.
+4. 자신이 원하는만큼 생성하고 보완하며 자신의 소설을 완성해가요!

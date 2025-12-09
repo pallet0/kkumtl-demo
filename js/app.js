@@ -359,8 +359,10 @@
             select.addEventListener('change', saveSettings);
         });
 
-        // Streaming toggle
-        elements.streamingToggle.addEventListener('change', saveSettings);
+        // Streaming toggle (if it exists)
+        if (elements.streamingToggle) {
+            elements.streamingToggle.addEventListener('change', saveSettings);
+        }
     }
 
     // ========================================
@@ -791,7 +793,7 @@
             style: elements.styleSelect.value,
             tone: elements.toneSelect.value,
             pov: elements.povSelect.value,
-            streaming: elements.streamingToggle.checked
+            streaming: elements.streamingToggle ? elements.streamingToggle.checked : false
         };
     }
 
@@ -850,7 +852,9 @@
         elements.styleSelect.value = settings.style;
         elements.toneSelect.value = settings.tone;
         elements.povSelect.value = settings.pov;
-        elements.streamingToggle.checked = settings.streaming;
+        if (elements.streamingToggle) {
+            elements.streamingToggle.checked = settings.streaming;
+        }
     }
 
     /**
