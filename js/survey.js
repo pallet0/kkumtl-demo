@@ -338,7 +338,8 @@
             email: email,
             satisfaction: state.satisfaction,
             likes_novels: elements.likesNovels.checked ? 'Yes' : 'No',
-            suggestions: elements.suggestions.value.trim() || ""
+            suggestions: elements.suggestions.value.trim() || "",
+            time_stamp: getTimeStamp()
         };
 
         // Disable submit button
