@@ -29,6 +29,8 @@
         charCount: document.getElementById('char-count'),
         remainingGenerations: document.getElementById('remaining-generations'),
         remainingCount: document.getElementById('remaining-count'),
+        remainingImageGenerations: document.getElementById('remaining-image-generations'),
+        remainingImageCount: document.getElementById('remaining-image-count'),
         cursorPosition: document.getElementById('cursor-position'),
         generationInfo: document.getElementById('generation-info'),
         autosaveStatus: document.getElementById('autosave-status'),
@@ -44,6 +46,7 @@
         btnUndo: document.getElementById('btn-undo'),
         btnRedo: document.getElementById('btn-redo'),
         btnGenerate: document.getElementById('btn-generate'),
+        btnGenerateImage: document.getElementById('btn-generate-image'),
         btnStop: document.getElementById('btn-stop'),
         btnFullscreen: document.getElementById('btn-fullscreen'),
         
@@ -93,6 +96,7 @@
     
     let state = {
         isGenerating: false,
+        isGeneratingImage: false,
         isFullscreen: false,
         lastSaveTime: null,
         autoSaveInterval: null,
@@ -115,6 +119,7 @@
         setupFormattingListeners();
         setupKeyboardShortcuts();
         setupPresetButtons();
+        setupImageDeleteHandlers();
         
         // Load saved data
         loadSavedDocument();
@@ -177,6 +182,7 @@
             
             // Update remaining generations display
             updateRemainingGenerationsDisplay();
+            updateRemainingImageGenerationsDisplay();
             
             // Focus editor
             elements.editorTextarea.focus();
@@ -186,7 +192,8 @@
                 showAlert('success', 'Admin Access!', 'Application unlocked with administrator privileges. No limits applied.');
             } else {
                 const remaining = RateLimitModule.getRemainingGenerations();
-                showAlert('success', 'Welcome!', `Application unlocked successfully. You have ${remaining} generations remaining.`);
+                const remainingImages = RateLimitModule.getRemainingImageGenerations();
+                showAlert('success', 'Welcome!', `Application unlocked successfully. You have ${remaining} text generations and ${remainingImages} image generations remaining.`);
             }
             
         } catch (error) {
@@ -231,6 +238,27 @@
                 elements.remainingGenerations.classList.add('low-count');
             } else {
                 elements.remainingGenerations.classList.remove('low-count');
+            }
+        }
+    }
+
+    /**
+     * Updates the remaining image generations display in the UI
+     */
+    function updateRemainingImageGenerationsDisplay() {
+        if (RateLimitModule.isAdmin()) {
+            // Hide for admins - they have unlimited generations
+            elements.remainingImageGenerations.classList.add('hidden');
+        } else {
+            const remaining = RateLimitModule.getRemainingImageGenerations();
+            elements.remainingImageCount.textContent = remaining;
+            elements.remainingImageGenerations.classList.remove('hidden');
+            
+            // Add warning style if low on generations
+            if (remaining <= 1) {
+                elements.remainingImageGenerations.classList.add('low-count');
+            } else {
+                elements.remainingImageGenerations.classList.remove('low-count');
             }
         }
     }
@@ -299,6 +327,9 @@
 
         // Generate
         elements.btnGenerate.addEventListener('click', handleGenerate);
+
+        // Generate Image
+        elements.btnGenerateImage.addEventListener('click', handleGenerateImage);
 
         // Stop generation
         elements.btnStop.addEventListener('click', handleStopGeneration);
@@ -671,11 +702,165 @@
     }
 
     /**
+     * Handles image generation
+     */
+    async function handleGenerateImage() {
+        if (state.isGenerating || state.isGeneratingImage || !GeminiModule.isInitialized()) {
+            return;
+        }
+
+        // Check rate limits before generating
+        const rateLimitCheck = RateLimitModule.canGenerateImage();
+        if (!rateLimitCheck.allowed) {
+            showAlert('warning', 'Image Generation Limit Reached', rateLimitCheck.reason);
+            return;
+        }
+
+        const editor = elements.editorTextarea;
+        const fullText = FormatterModule.getPlainText(editor);
+
+        if (!fullText.trim()) {
+            showAlert('warning', 'No Context', 'Please write some text first before generating an image. The image will be based on your story context.');
+            return;
+        }
+
+        // Update UI
+        setImageGeneratingState(true);
+
+        const settings = getGenerationSettings();
+
+        await GeminiModule.generateImage(
+            fullText,
+            settings,
+            // onComplete - called when image generation finishes
+            (imageData) => {
+                setImageGeneratingState(false);
+                
+                // Insert the image into the editor at the cursor position
+                insertImageIntoEditor(imageData);
+                
+                // Increment image generation count (for rate limiting)
+                RateLimitModule.incrementImageGenerationCount();
+                
+                // Update remaining image generations display in the UI
+                updateRemainingImageGenerationsDisplay();
+                
+                // Show info with remaining generations
+                const remaining = RateLimitModule.getRemainingImageGenerations();
+                if (RateLimitModule.isAdmin()) {
+                    elements.generationInfo.textContent = 'Image generated (Admin)';
+                } else {
+                    elements.generationInfo.textContent = `Image generated (${remaining} images remaining)`;
+                }
+                
+                setTimeout(() => {
+                    elements.generationInfo.textContent = '';
+                }, 3000);
+                
+                showAlert('success', 'Image Generated', 'An illustration has been added to your story.');
+            },
+            // onError - called on error
+            (error) => {
+                setImageGeneratingState(false);
+                const classified = GeminiModule.classifyError(error);
+                showAlert(classified.type, classified.title, classified.message);
+            }
+        );
+    }
+
+    /**
+     * Inserts a generated image into the editor at the current cursor position
+     * @param {Object} imageData - Object with mimeType and data (base64)
+     */
+    function insertImageIntoEditor(imageData) {
+        const editor = elements.editorTextarea;
+        const selection = window.getSelection();
+        
+        // Create image container
+        const imageContainer = document.createElement('div');
+        imageContainer.className = 'novel-image-container';
+        imageContainer.contentEditable = 'false';
+        
+        // Create image element
+        const img = document.createElement('img');
+        img.className = 'novel-image';
+        img.src = `data:${imageData.mimeType};base64,${imageData.data}`;
+        img.alt = 'Generated illustration for the novel';
+        
+        // Create delete button
+        const deleteBtn = document.createElement('button');
+        deleteBtn.className = 'novel-image-delete';
+        deleteBtn.innerHTML = '×';
+        deleteBtn.title = 'Delete image';
+        deleteBtn.onclick = function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            if (confirm('Delete this image?')) {
+                imageContainer.remove();
+                updateStats();
+            }
+        };
+        
+        imageContainer.appendChild(img);
+        imageContainer.appendChild(deleteBtn);
+        
+        // Insert image at cursor position
+        if (selection.rangeCount > 0) {
+            const range = selection.getRangeAt(0);
+            range.deleteContents();
+            
+            // Add line breaks around the image for proper text flow
+            const beforeBr = document.createElement('br');
+            const afterBr = document.createElement('br');
+            
+            range.insertNode(afterBr);
+            range.insertNode(imageContainer);
+            range.insertNode(beforeBr);
+            
+            // Move cursor after the image
+            range.setStartAfter(afterBr);
+            range.setEndAfter(afterBr);
+            selection.removeAllRanges();
+            selection.addRange(range);
+        } else {
+            // If no selection, append to end
+            editor.appendChild(document.createElement('br'));
+            editor.appendChild(imageContainer);
+            editor.appendChild(document.createElement('br'));
+        }
+        
+        // Focus back on editor
+        editor.focus();
+        updateStats();
+    }
+
+    /**
+     * Sets up event delegation for image delete buttons
+     */
+    function setupImageDeleteHandlers() {
+        // Use event delegation for dynamically added delete buttons
+        elements.editorTextarea.addEventListener('click', function(e) {
+            if (e.target.classList.contains('novel-image-delete')) {
+                e.preventDefault();
+                e.stopPropagation();
+                if (confirm('Delete this image?')) {
+                    const container = e.target.closest('.novel-image-container');
+                    if (container) {
+                        container.remove();
+                        updateStats();
+                    }
+                }
+            }
+        });
+    }
+
+    /**
      * Handles stopping generation
      */
     function handleStopGeneration() {
         GeminiModule.stopGeneration();
         setGeneratingState(false);
+        setImageGeneratingState(false);
     }
 
     /**
@@ -697,6 +882,7 @@
 
         // Toggle buttons
         elements.btnGenerate.classList.toggle('hidden', isGenerating);
+        elements.btnGenerateImage.classList.toggle('hidden', isGenerating);
         elements.btnStop.classList.toggle('hidden', !isGenerating);
 
         // Toggle loading overlay (only if not streaming)
@@ -709,6 +895,40 @@
         if (!settings.streaming) {
             elements.editorTextarea.contentEditable = isGenerating ? 'false' : 'true';
         }
+    }
+
+    /**
+     * Sets the UI state during/after image generation
+     * @param {boolean} isGenerating - Whether image generation is in progress
+     */
+    function setImageGeneratingState(isGenerating) {
+        state.isGeneratingImage = isGenerating;
+
+        // Update status indicator
+        const statusIndicator = elements.statusIndicator;
+        if (isGenerating) {
+            statusIndicator.className = 'status-generating';
+            statusIndicator.innerHTML = '<span class="status-dot"></span><span class="status-text">Generating Image...</span>';
+        } else if (!state.isGenerating) {
+            statusIndicator.className = 'status-idle';
+            statusIndicator.innerHTML = '<span class="status-dot"></span><span class="status-text">Ready</span>';
+        }
+
+        // Toggle buttons
+        elements.btnGenerate.classList.toggle('hidden', isGenerating);
+        elements.btnGenerateImage.classList.toggle('hidden', isGenerating);
+        elements.btnStop.classList.toggle('hidden', !isGenerating);
+
+        // Toggle loading overlay
+        elements.loadingOverlay.classList.toggle('hidden', !isGenerating);
+        if (isGenerating) {
+            elements.loadingOverlay.querySelector('.loading-text').textContent = 'Generating Image...';
+        } else {
+            elements.loadingOverlay.querySelector('.loading-text').textContent = 'Generating...';
+        }
+
+        // Disable/enable contenteditable during generation
+        elements.editorTextarea.contentEditable = isGenerating ? 'false' : 'true';
     }
 
     /**
