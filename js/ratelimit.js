@@ -14,10 +14,12 @@ const RateLimitModule = (function() {
     // ========================================
     
     const CONFIG = {
-        MAX_GENERATIONS_PER_IP: 10,
+        MAX_GENERATIONS_PER_IP: 5,
         MAX_TOKENS_PER_GENERATION: 500,
+        MAX_INPUT_TOKENS: 2000,
         STORAGE_KEY: 'novelWriter_rateLimit',
-        TOKENS_TO_WORDS_RATIO: 0.75
+        TOKENS_TO_WORDS_RATIO: 0.75,
+        CHARS_PER_TOKEN_ESTIMATE: 4
     };
 
     // ========================================
@@ -154,6 +156,40 @@ const RateLimitModule = (function() {
     }
 
     /**
+     * Estimates the number of tokens in a text
+     * @param {string} text - Input text
+     * @returns {number} - Estimated token count
+     */
+    function estimateTokenCount(text) {
+        if (!text) return 0;
+        // Rough estimate: 1 token ≈ 4 characters for English
+        return Math.ceil(text.length / CONFIG.CHARS_PER_TOKEN_ESTIMATE);
+    }
+
+    /**
+     * Checks if input text exceeds the maximum token limit
+     * @param {string} inputText - The input text to check
+     * @returns {Object} - { allowed: boolean, reason: string, tokenCount: number }
+     */
+    function checkInputTokenLimit(inputText) {
+        // Admins bypass all limits
+        if (state.isAdmin) {
+            return { allowed: true, reason: '', tokenCount: estimateTokenCount(inputText) };
+        }
+
+        const tokenCount = estimateTokenCount(inputText);
+        if (tokenCount > CONFIG.MAX_INPUT_TOKENS) {
+            return {
+                allowed: false,
+                reason: `Your input exceeds the maximum token limit (${tokenCount} tokens / ${CONFIG.MAX_INPUT_TOKENS} max). Please shorten your input text.`,
+                tokenCount: tokenCount
+            };
+        }
+
+        return { allowed: true, reason: '', tokenCount: tokenCount };
+    }
+
+    /**
      * Gets the maximum allowed tokens for generation
      * @returns {number} - Max tokens (Infinity for admins)
      */
@@ -201,6 +237,7 @@ const RateLimitModule = (function() {
     return {
         initialize,
         canGenerate,
+        checkInputTokenLimit,
         getMaxTokens,
         clampMaxWords,
         incrementGenerationCount,

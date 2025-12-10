@@ -364,6 +364,34 @@ body {
     color: var(--text-secondary);
 }
 
+/* Remaining Generations Display */
+.remaining-generations {
+    font-size: 13px;
+    color: var(--text-muted);
+    background: #eff6ff;
+    padding: 4px 10px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--info-color);
+}
+
+.remaining-generations span {
+    font-weight: 600;
+    color: var(--info-color);
+}
+
+.remaining-generations.low-count {
+    background: #fffbeb;
+    border-color: var(--warning-color);
+}
+
+.remaining-generations.low-count span {
+    color: var(--warning-color);
+}
+
+.remaining-generations.hidden {
+    display: none;
+}
+
 /* ========================================
    MAIN CONTENT LAYOUT
    ======================================== */

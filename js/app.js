@@ -27,6 +27,8 @@
         statusIndicator: document.getElementById('status-indicator'),
         wordCount: document.getElementById('word-count'),
         charCount: document.getElementById('char-count'),
+        remainingGenerations: document.getElementById('remaining-generations'),
+        remainingCount: document.getElementById('remaining-count'),
         cursorPosition: document.getElementById('cursor-position'),
         generationInfo: document.getElementById('generation-info'),
         autosaveStatus: document.getElementById('autosave-status'),
@@ -170,6 +172,12 @@
             elements.passwordModal.classList.add('hidden');
             elements.appContainer.classList.remove('hidden');
             
+            // Apply user restrictions based on admin status
+            applyUserRestrictions();
+            
+            // Update remaining generations display
+            updateRemainingGenerationsDisplay();
+            
             // Focus editor
             elements.editorTextarea.focus();
             
@@ -204,6 +212,49 @@
         elements.passwordInput.style.animation = 'none';
         elements.passwordInput.offsetHeight; // Trigger reflow
         elements.passwordInput.style.animation = 'shake 0.5s ease';
+    }
+
+    /**
+     * Updates the remaining generations display in the UI
+     */
+    function updateRemainingGenerationsDisplay() {
+        if (RateLimitModule.isAdmin()) {
+            // Hide for admins
+            elements.remainingGenerations.classList.add('hidden');
+        } else {
+            const remaining = RateLimitModule.getRemainingGenerations();
+            elements.remainingCount.textContent = remaining;
+            elements.remainingGenerations.classList.remove('hidden');
+            
+            // Add warning style if low on generations
+            if (remaining <= 2) {
+                elements.remainingGenerations.classList.add('low-count');
+            } else {
+                elements.remainingGenerations.classList.remove('low-count');
+            }
+        }
+    }
+
+    /**
+     * Applies restrictions based on user admin status
+     * Non-admin users are restricted to Gemini 2.5 Pro only
+     */
+    function applyUserRestrictions() {
+        if (!RateLimitModule.isAdmin()) {
+            // Restrict model selection to Gemini 2.5 Pro only for non-admin users
+            const modelSelect = elements.modelSelect;
+            
+            // Set to Gemini 2.5 Pro and disable other options
+            modelSelect.value = 'gemini-2.5-pro';
+            
+            // Disable and style other options
+            for (let option of modelSelect.options) {
+                if (option.value !== 'gemini-2.5-pro') {
+                    option.disabled = true;
+                    option.textContent += ' (Admin only)';
+                }
+            }
+        }
     }
 
     // ========================================
@@ -538,6 +589,13 @@
         const textBefore = fullText.substring(0, cursorPos);
         const textAfter = fullText.substring(cursorPos);
 
+        // Check input token limit before generating
+        const inputTokenCheck = RateLimitModule.checkInputTokenLimit(textBefore);
+        if (!inputTokenCheck.allowed) {
+            showAlert('warning', 'Input Token Limit Exceeded', inputTokenCheck.reason);
+            return;
+        }
+
         // Save state for undo
         StorageModule.pushHistory(fullText);
         state.cursorPositionBeforeGeneration = cursorPos;
@@ -586,6 +644,9 @@
                 
                 // Increment generation count (for rate limiting)
                 RateLimitModule.incrementGenerationCount();
+                
+                // Update remaining generations display in the UI
+                updateRemainingGenerationsDisplay();
                 
                 // Show info with remaining generations
                 const wordCount = FormatterModule.countWords(generatedText);
