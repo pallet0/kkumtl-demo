@@ -787,19 +787,11 @@
         img.src = `data:${imageData.mimeType};base64,${imageData.data}`;
         img.alt = 'Generated illustration for the novel';
         
-        // Create delete button
+        // Create delete button (click handler is set up via event delegation in setupImageDeleteHandlers)
         const deleteBtn = document.createElement('button');
         deleteBtn.className = 'novel-image-delete';
         deleteBtn.innerHTML = '×';
         deleteBtn.title = 'Delete image';
-        deleteBtn.onclick = function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            if (confirm('Delete this image?')) {
-                imageContainer.remove();
-                updateStats();
-            }
-        };
         
         imageContainer.appendChild(img);
         imageContainer.appendChild(deleteBtn);

@@ -915,7 +915,8 @@ body {
 .editor-textarea .novel-image-delete {
     position: absolute;
     top: -10px;
-    right: calc(50% - 210px);
+    left: 50%;
+    transform: translateX(calc(min(200px, 50%) - 14px));
     width: 28px;
     height: 28px;
     border-radius: 50%;
