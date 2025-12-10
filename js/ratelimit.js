@@ -185,11 +185,11 @@ const RateLimitModule = (function() {
             return {
                 allowed: false,
                 reason: `Your input exceeds the maximum token limit (${tokenCount} tokens / ${CONFIG.MAX_INPUT_TOKENS} max). Please shorten your input text.`,
-                tokenCount: tokenCount
+                tokenCount
             };
         }
 
-        return { allowed: true, reason: '', tokenCount: tokenCount };
+        return { allowed: true, reason: '', tokenCount };
     }
 
     /**
