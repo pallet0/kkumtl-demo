@@ -16,7 +16,8 @@ const FormatterModule = (function() {
     // Regex patterns for different text elements (kept for reference, not strictly required)
     const PATTERNS = {
         dialogue: /"([^"]+)"/g,
-        thoughts: /'([^']+)'/g,
+        // Thoughts pattern requires space/start before opening quote to avoid contractions/possessives
+        thoughts: /(^|[\s])'([^']+)'/g,
         
         // Asterisk emphasis: *important*
         emphasis: /\*([^*]+)\*/g
@@ -112,22 +113,23 @@ const FormatterModule = (function() {
         // Build formatted HTML
         let formattedHtml = escapeHtml(text);
         
-        // Apply formatting patterns (in reverse order to handle overlaps properly)
-        // We use a placeholder system to avoid nested replacements
+        // Apply formatting patterns
+        // Note: escapeHtml() does not encode quotes, so we match actual quote characters
         
         // 1. Dialogue (double quotes)
         formattedHtml = formattedHtml.replace(
-            /&quot;([^&quot;]+)&quot;/g,
+            /"([^"]+)"/g,
             (match, content) => `<span class="dialogue">"${content}"</span>`
         );
         
-        // 2. Thoughts (single quotes) - need to be careful with apostrophes
+        // 2. Thoughts (single quotes) - requires space/start before opening quote
+        // to avoid matching contractions (don't) and possessives (John's)
         formattedHtml = formattedHtml.replace(
-            /&#39;([^&#39;]+)&#39;/g,
-            (match, content) => `<span class="thoughts">'${content}'</span>`
+            /(^|[\s])'([^']+)'/g,
+            (match, prefix, content) => `${prefix}<span class="thoughts">'${content}'</span>`
         );
         
-        // 3. Emphasis (asterisks) - content is already escaped
+        // 3. Emphasis (asterisks)
         formattedHtml = formattedHtml.replace(
             /\*([^*]+)\*/g,
             (match, content) => `<span class="emphasis">${content}</span>`
