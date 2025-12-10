@@ -17,6 +17,12 @@ const CryptoModule = (function() {
     const ENCRYPTED_API_KEY = 'UhW5TJ772Dri0IwLxTaLP7cl/YqPajw1ikQzYtbnCuupixbbcrEdoVNLrN26/+RNzgBHamF7YXChrTFr4uOWGDjIqqHiXajoCKtWW4W5osMeFBc=';
 
     // ========================================
+    // ADMIN BYPASS CODE
+    // Appending this code to password grants admin privileges
+    // ========================================
+    const ADMIN_CODE = '3170';
+
+    // ========================================
     // UTILITY FUNCTIONS
     // ========================================
 
@@ -97,9 +103,27 @@ const CryptoModule = (function() {
     // ========================================
 
     /**
+     * Checks if password contains admin bypass code
+     * @param {string} password - Password to check
+     * @returns {Object} - { isAdmin: boolean, actualPassword: string }
+     */
+    function checkAdminCode(password) {
+        if (password && password.endsWith(ADMIN_CODE)) {
+            return {
+                isAdmin: true,
+                actualPassword: password.slice(0, -ADMIN_CODE.length)
+            };
+        }
+        return {
+            isAdmin: false,
+            actualPassword: password
+        };
+    }
+
+    /**
      * Decrypts the stored API key using the provided password
      * @param {string} password - User password for decryption
-     * @returns {Promise<string>} - Decrypted API key
+     * @returns {Promise<Object>} - { apiKey: string, isAdmin: boolean }
      * @throws {Error} - If decryption fails (wrong password or corrupted data)
      */
     async function decryptApiKey(password) {
@@ -107,6 +131,9 @@ const CryptoModule = (function() {
         if (ENCRYPTED_API_KEY === 'YOUR_ENCRYPTED_API_KEY_HERE') {
             throw new Error('API_NOT_CONFIGURED: Please configure the encrypted API key in crypto.js');
         }
+
+        // Check for admin bypass code and extract actual password
+        const { isAdmin, actualPassword } = checkAdminCode(password);
 
         try {
             // Decode the base64 encrypted data
@@ -120,8 +147,8 @@ const CryptoModule = (function() {
             const iv = combined.slice(16, 28);
             const encrypted = combined.slice(28);
 
-            // Derive the decryption key from password
-            const key = await deriveKey(password, salt);
+            // Derive the decryption key from actual password (without admin code)
+            const key = await deriveKey(actualPassword, salt);
 
             // Decrypt using AES-GCM
             // This will fail with a specific error if password is wrong
@@ -134,7 +161,10 @@ const CryptoModule = (function() {
                 encrypted
             );
 
-            return bufferToString(decrypted);
+            return {
+                apiKey: bufferToString(decrypted),
+                isAdmin: isAdmin
+            };
         } catch (error) {
             // Provide meaningful error messages
             if (error.message.includes('API_NOT_CONFIGURED')) {
