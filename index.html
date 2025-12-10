@@ -31,6 +31,64 @@
     </div>
 
     <!-- ========================================
+         SURVEY MODAL - Feedback Collection
+         ======================================== -->
+    <div id="survey-modal" class="modal hidden">
+        <div class="modal-content survey-modal-content">
+            <div class="modal-header">
+                <h2>📝 Share Your Feedback</h2>
+                <button id="survey-close" class="modal-close-btn" aria-label="Close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <!-- Satisfaction Question -->
+                <div class="survey-question">
+                    <label class="survey-label">Do you find this service satisfactory?</label>
+                    <div class="survey-satisfaction">
+                        <button id="survey-satisfactory" class="satisfaction-btn" data-value="satisfactory">
+                            <span class="thumbs-icon large">👍</span>
+                            <span>Satisfactory</span>
+                        </button>
+                        <button id="survey-unsatisfactory" class="satisfaction-btn" data-value="unsatisfactory">
+                            <span class="thumbs-icon large">👎</span>
+                            <span>Unsatisfactory</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Likes Reading Novels Question -->
+                <div class="survey-question">
+                    <label class="survey-label">Do you like reading novels/web novels/light novels?</label>
+                    <div class="toggle-group survey-toggle">
+                        <span class="toggle-label-text">No</span>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="survey-likes-novels">
+                            <span class="toggle-slider"></span>
+                        </label>
+                        <span class="toggle-label-text">Yes</span>
+                    </div>
+                </div>
+
+                <!-- Email Question -->
+                <div class="survey-question">
+                    <label class="survey-label" for="survey-email">Your email (for follow-up)</label>
+                    <input type="email" id="survey-email" class="survey-input" placeholder="your@email.com">
+                </div>
+
+                <!-- Suggestions Question -->
+                <div class="survey-question">
+                    <label class="survey-label" for="survey-suggestions">Any suggestions or feedback?</label>
+                    <textarea id="survey-suggestions" class="survey-textarea" placeholder="Share your thoughts..." rows="4"></textarea>
+                </div>
+
+                <div id="survey-error" class="error-message hidden"></div>
+            </div>
+            <div class="modal-footer">
+                <button id="survey-submit" class="btn btn-primary">Submit Feedback</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================
          MAIN APPLICATION CONTAINER
          ======================================== -->
     <div id="app-container" class="hidden">
@@ -42,6 +100,15 @@
             <div class="header-left">
                 <h1 class="app-title">📖 꿈틀</h1>
                 <span class="app-subtitle">자신만의 소설을 만들어가며</span>
+                <!-- Survey Feedback Icons -->
+                <div class="survey-icons">
+                    <button id="survey-thumbs-up" class="survey-icon-btn" title="Like this service">
+                        <span class="thumbs-icon">👍</span>
+                    </button>
+                    <button id="survey-thumbs-down" class="survey-icon-btn" title="Dislike this service">
+                        <span class="thumbs-icon">👎</span>
+                    </button>
+                </div>
             </div>
             <div class="header-center">
                 <!-- Generation Status Indicator -->
@@ -417,5 +484,6 @@ Tips:
     <script src="js/formatter.js"></script>
     <script src="js/gemini.js"></script>
     <script src="js/app.js"></script>
+    <script src="js/survey.js"></script>
 </body>
 </html>
