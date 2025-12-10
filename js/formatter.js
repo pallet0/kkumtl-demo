@@ -12,19 +12,12 @@ const FormatterModule = (function() {
     // ========================================
     // FORMATTING PATTERNS
     // ========================================
-    
-    // Regex patterns for different text elements
+
+    // Regex patterns for different text elements (kept for reference, not strictly required)
     const PATTERNS = {
-        // Double-quoted dialogue: "Hello, world!"
         dialogue: /"([^"]+)"/g,
-        
-        // Single-quoted thoughts/inner monologue: 'I wonder...'
         thoughts: /'([^']+)'/g,
-        
-        // Asterisk emphasis: *important*
         emphasis: /\*([^*]+)\*/g,
-        
-        // Paragraph breaks (2+ newlines)
         paragraph: /\n\n+/g
     };
 
@@ -44,40 +37,32 @@ const FormatterModule = (function() {
         // Split into paragraphs first
         const paragraphs = text.split(/\n\n+/);
 
-        // Format each paragraph
+        // Format each paragraph: escape first, then apply inline replacements
         const formattedParagraphs = paragraphs.map(paragraph => {
             if (!paragraph.trim()) return '';
 
-            let formatted = paragraph;
+            // First, escape the entire paragraph to prevent HTML injection
+            let escaped = escapeHtml(paragraph);
 
-            // Apply dialogue formatting (double quotes) - BEFORE escaping HTML
-            formatted = formatted.replace(
-                /"([^"]+)"/g,
-                (match, content) => `<span class="dialogue" style="color: ${colors.dialogueColor}">"${escapeHtml(content)}"</span>`
+            // Now apply formatting replacements on the escaped text.
+            // Because the text has been escaped, inserting our own safe HTML is fine.
+            escaped = escaped.replace(/"([^"]+)"/g, (match, content) =>
+                `<span class="dialogue" style="color: ${colors.dialogueColor}">&quot;${content}&quot;</span>`
             );
 
-            // Apply thoughts formatting (single quotes) - BEFORE escaping HTML
-            formatted = formatted.replace(
-                /'([^']+)'/g,
-                (match, content) => `<span class="thoughts" style="color: ${colors.thoughtsColor}">'${escapeHtml(content)}'</span>`
+            escaped = escaped.replace(/'([^']+)'/g, (match, content) =>
+                `<span class="thoughts" style="color: ${colors.thoughtsColor}">&apos;${content}&apos;</span>`
             );
 
-            // Apply emphasis formatting (asterisks) - BEFORE escaping HTML
-            formatted = formatted.replace(
-                /\*([^*]+)\*/g,
-                (match, content) => `<span class="emphasis" style="color: ${colors.emphasisColor}">${escapeHtml(content)}</span>`
+            escaped = escaped.replace(/\*([^*]+)\*/g, (match, content) =>
+                `<span class="emphasis" style="color: ${colors.emphasisColor}">${content}</span>`
             );
 
-            // Escape any remaining unformatted HTML
-            formatted = formatted.replace(/(<span class="(?:dialogue|thoughts|emphasis)"[^>]*>.*?<\/span>)|([^<]+)/g, (match, span, text) => {
-                if (span) return span; // Already processed
-                return escapeHtml(text); // Escape remaining text
-            });
-
-            return `<p>${formatted}</p>`;
+            return `<p>${escaped}</p>`;
         });
 
-        return formattedParagraphs.join('');
+        // Join paragraphs with a newline for readability
+        return formattedParagraphs.join('\n');
     }
 
     /**
@@ -89,9 +74,11 @@ const FormatterModule = (function() {
         const escapeMap = {
             '&': '&amp;',
             '<': '&lt;',
-            '>': '&gt;'
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#39;'
         };
-        return text.replace(/[&<>]/g, char => escapeMap[char]);
+        return String(text).replace(/[&<>"']/g, char => escapeMap[char]);
     }
 
     // ========================================
@@ -112,10 +99,10 @@ const FormatterModule = (function() {
         if (formatting.fontSize) {
             root.style.setProperty('--editor-font-size', `${formatting.fontSize}px`);
         }
-        if (formatting.lineHeight) {
+        if (formatting.lineHeight !== undefined) {
             root.style.setProperty('--editor-line-height', formatting.lineHeight);
         }
-        if (formatting.paragraphSpacing) {
+        if (formatting.paragraphSpacing !== undefined) {
             root.style.setProperty('--editor-paragraph-spacing', `${formatting.paragraphSpacing}em`);
         }
 
@@ -185,45 +172,25 @@ const FormatterModule = (function() {
     // TEXT STATISTICS
     // ========================================
 
-    /**
-     * Counts words in text
-     * @param {string} text - Text to count
-     * @returns {number} - Word count
-     */
     function countWords(text) {
         if (!text || !text.trim()) return 0;
         return text.trim().split(/\s+/).filter(word => word.length > 0).length;
     }
 
-    /**
-     * Counts characters in text
-     * @param {string} text - Text to count
-     * @returns {number} - Character count
-     */
     function countCharacters(text) {
         return text ? text.length : 0;
     }
 
-    /**
-     * Counts paragraphs in text
-     * @param {string} text - Text to count
-     * @returns {number} - Paragraph count
-     */
     function countParagraphs(text) {
         if (!text || !text.trim()) return 0;
         return text.split(/\n\n+/).filter(p => p.trim()).length;
     }
 
-    /**
-     * Gets cursor position info (line and column)
-     * @param {HTMLTextAreaElement} textarea - Textarea element
-     * @returns {Object} - Line and column numbers
-     */
     function getCursorPosition(textarea) {
         const cursorPos = textarea.selectionStart;
         const textBeforeCursor = textarea.value.substring(0, cursorPos);
         const lines = textBeforeCursor.split('\n');
-        
+
         return {
             line: lines.length,
             column: lines[lines.length - 1].length + 1
