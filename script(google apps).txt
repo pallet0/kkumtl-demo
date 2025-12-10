@@ -1,3 +1,23 @@
+/*
+ * ========================================
+ * IMPORTANT: REQUIRED SPREADSHEET SETUP
+ * ========================================
+ * 
+ * For the survey data to be collected properly in your "beta_data" sheet,
+ * ensure the FIRST ROW (header row) contains EXACTLY these column names:
+ * 
+ *   id | email | satisfaction | likes_novels | suggestions | time_stamp
+ * 
+ * The column names must match exactly (case-sensitive) with the data sent
+ * from the website. If any column is missing, the insert will fail silently.
+ * 
+ * For the "beta_visitors" sheet, ensure the header row contains:
+ * 
+ *   id | landingUrl | ip | referer | time_stamp | utm | device
+ * 
+ * ========================================
+ */
+
 function doGet(req) {
 
 				// return ContentService.createTextOutput(JSON.stringify(req));
