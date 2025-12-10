@@ -16,7 +16,8 @@ const RateLimitModule = (function() {
     const CONFIG = {
         MAX_GENERATIONS_PER_IP: 10,
         MAX_TOKENS_PER_GENERATION: 500,
-        STORAGE_KEY: 'novelWriter_rateLimit'
+        STORAGE_KEY: 'novelWriter_rateLimit',
+        TOKENS_TO_WORDS_RATIO: 0.75
     };
 
     // ========================================
@@ -172,8 +173,8 @@ const RateLimitModule = (function() {
         if (state.isAdmin) {
             return requestedWords;
         }
-        // Rough estimate: 1 token ≈ 0.75 words, so maxTokens * 0.75 gives word limit
-        const maxWords = Math.floor(CONFIG.MAX_TOKENS_PER_GENERATION * 0.75);
+        // Convert max tokens to approximate words using the conversion ratio
+        const maxWords = Math.floor(CONFIG.MAX_TOKENS_PER_GENERATION * CONFIG.TOKENS_TO_WORDS_RATIO);
         return Math.min(requestedWords, maxWords);
     }
 
