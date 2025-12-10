@@ -160,8 +160,11 @@
         elements.passwordSubmit.textContent = 'Unlocking...';
         
         try {
-            const apiKey = await CryptoModule.decryptApiKey(password);
+            const { apiKey, isAdmin } = await CryptoModule.decryptApiKey(password);
             GeminiModule.initialize(apiKey);
+            
+            // Initialize rate limiting with admin status
+            await RateLimitModule.initialize(isAdmin);
             
             // Hide modal and show app
             elements.passwordModal.classList.add('hidden');
@@ -170,7 +173,13 @@
             // Focus editor
             elements.editorTextarea.focus();
             
-            showAlert('success', 'Welcome!', 'Application unlocked successfully. Start writing!');
+            // Show appropriate welcome message
+            if (isAdmin) {
+                showAlert('success', 'Admin Access!', 'Application unlocked with administrator privileges. No limits applied.');
+            } else {
+                const remaining = RateLimitModule.getRemainingGenerations();
+                showAlert('success', 'Welcome!', `Application unlocked successfully. You have ${remaining} generations remaining.`);
+            }
             
         } catch (error) {
             const classified = GeminiModule.classifyError(error);
@@ -516,6 +525,13 @@
             return;
         }
 
+        // Check rate limits before generating
+        const rateLimitCheck = RateLimitModule.canGenerate();
+        if (!rateLimitCheck.allowed) {
+            showAlert('warning', 'Generation Limit Reached', rateLimitCheck.reason);
+            return;
+        }
+
         const editor = elements.editorTextarea;
         const cursorPos = FormatterModule.getCursorOffset(editor);
         const fullText = FormatterModule.getPlainText(editor);
@@ -530,6 +546,9 @@
         setGeneratingState(true);
 
         const settings = getGenerationSettings();
+        
+        // Apply rate limit to max words if not admin
+        settings.maxWords = RateLimitModule.clampMaxWords(settings.maxWords);
 
         await GeminiModule.generateText(
             textBefore,
@@ -565,9 +584,17 @@
                 // Save to history
                 StorageModule.pushHistory(finalText);
                 
-                // Show info
+                // Increment generation count (for rate limiting)
+                RateLimitModule.incrementGenerationCount();
+                
+                // Show info with remaining generations
                 const wordCount = FormatterModule.countWords(generatedText);
-                elements.generationInfo.textContent = `Generated ${wordCount} words`;
+                const remaining = RateLimitModule.getRemainingGenerations();
+                if (RateLimitModule.isAdmin()) {
+                    elements.generationInfo.textContent = `Generated ${wordCount} words (Admin)`;
+                } else {
+                    elements.generationInfo.textContent = `Generated ${wordCount} words (${remaining} remaining)`;
+                }
                 
                 setTimeout(() => {
                     elements.generationInfo.textContent = '';
