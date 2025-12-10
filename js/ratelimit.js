@@ -157,12 +157,15 @@ const RateLimitModule = (function() {
 
     /**
      * Estimates the number of tokens in a text
+     * Note: This is a rough estimate based on ~4 characters per token.
+     * This may be less accurate for non-Latin scripts (e.g., CJK characters)
+     * which typically use fewer characters per token.
      * @param {string} text - Input text
      * @returns {number} - Estimated token count
      */
     function estimateTokenCount(text) {
         if (!text) return 0;
-        // Rough estimate: 1 token ≈ 4 characters for English
+        // Rough estimate: 1 token ≈ 4 characters (may vary by language)
         return Math.ceil(text.length / CONFIG.CHARS_PER_TOKEN_ESTIMATE);
     }
 

@@ -219,7 +219,7 @@
      */
     function updateRemainingGenerationsDisplay() {
         if (RateLimitModule.isAdmin()) {
-            // Hide for admins
+            // Hide for admins - they have unlimited generations
             elements.remainingGenerations.classList.add('hidden');
         } else {
             const remaining = RateLimitModule.getRemainingGenerations();
@@ -247,9 +247,9 @@
             // Set to Gemini 2.5 Pro and disable other options
             modelSelect.value = 'gemini-2.5-pro';
             
-            // Disable and style other options
+            // Disable and style other options (only if not already done)
             for (let option of modelSelect.options) {
-                if (option.value !== 'gemini-2.5-pro') {
+                if (option.value !== 'gemini-2.5-pro' && !option.disabled) {
                     option.disabled = true;
                     option.textContent += ' (Admin only)';
                 }
