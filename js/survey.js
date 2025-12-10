@@ -17,7 +17,8 @@
         SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbz7JsaF_YeqgWFa2tQipI0ywrQHKDi1iBPXRIQXj80BKPtfx0Tl10JTEex7-zip8E6SBw/exec',
         VISITORS_TABLE: 'beta_visitors',
         DATA_TABLE: 'beta_data',
-        COOKIE_EXPIRY_DAYS: 180
+        COOKIE_EXPIRY_DAYS: 180,
+        JSONP_TIMEOUT_MS: 10000
     };
 
     // ========================================
@@ -121,7 +122,7 @@
         const hours = date.getHours();
         const minutes = date.getMinutes();
         const seconds = date.getSeconds();
-        return `${padValue(year)}-${padValue(month)}-${padValue(day)} ${padValue(hours)}:${padValue(minutes)}:${padValue(seconds)}`;
+        return `${year}-${padValue(month)}-${padValue(day)} ${padValue(hours)}:${padValue(minutes)}:${padValue(seconds)}`;
     }
 
     /**
@@ -160,12 +161,13 @@
     }
 
     /**
-     * Validates email format
+     * Validates email format using a simple, standard pattern
      * @param {string} email - Email to validate
      * @returns {boolean} - Is valid
      */
     function validateEmail(email) {
-        const re = /^([\w-]+(?:\.[\w-]+)*)@((?:[\w-]+\.)*\w[\w-]{0,66})\.([a-z]{2,6}(?:\.[a-z]{2})?)$/i;
+        // Simple email validation pattern that covers most cases
+        const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         return re.test(email);
     }
 
@@ -182,7 +184,7 @@
     function sendToSheet(table, data) {
         return new Promise((resolve, reject) => {
             const dataStr = JSON.stringify(data);
-            const callbackName = 'jsonp_callback_' + Math.round(100000 * Math.random());
+            const callbackName = 'jsonp_callback_' + Date.now() + '_' + Math.random().toString(36).substring(2, 8);
             
             // Create callback function
             window[callbackName] = function(response) {
@@ -210,7 +212,7 @@
                     }
                     reject(new Error('Request timed out'));
                 }
-            }, 10000);
+            }, CONFIG.JSONP_TIMEOUT_MS);
             
             document.body.appendChild(script);
         });
