@@ -450,7 +450,7 @@
      */
     function updateCursorDisplay() {
         const pos = FormatterModule.getCursorPosition(elements.editorTextarea);
-        elements.cursorPosition.textContent = `${pos.line}줄, ${pos.column}열`;
+        elements.cursorPosition.textContent = `${pos.line}줄 ${pos.column}열`;
     }
 
     // ========================================
