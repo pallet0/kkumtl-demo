@@ -185,7 +185,9 @@ const FormatterModule = (function() {
                         // Add a newline character as text to separate from previous content
                         fragment.appendChild(document.createTextNode('\n'));
                     }
-                    for (const child of node.childNodes) {
+                    // Convert to array to avoid issues with live NodeList during recursion
+                    const children = Array.from(node.childNodes);
+                    for (const child of children) {
                         processNode(child);
                     }
                 } else if (node.tagName === 'SPAN' && (
@@ -202,7 +204,9 @@ const FormatterModule = (function() {
                     }
                 } else {
                     // Recurse into other elements
-                    for (const child of node.childNodes) {
+                    // Convert to array to avoid issues with live NodeList during recursion
+                    const children = Array.from(node.childNodes);
+                    for (const child of children) {
                         processNode(child);
                     }
                 }
@@ -252,26 +256,34 @@ const FormatterModule = (function() {
         const cursorPos = saveCursorPosition(element);
         
         // Save any image containers before replacing content
+        // Note: Images will be appended at the end after text is set,
+        // which may not preserve their original positions
         const imageContainers = element.querySelectorAll('.novel-image-container');
         const savedImages = [];
         imageContainers.forEach(container => {
-            // Find what comes before and after this image in the text flow
-            // We'll use the image's relative position to reinsert later
             savedImages.push(container.cloneNode(true));
         });
         
         // Set the text content
         element.textContent = text;
         
-        // Re-insert saved images at the end (they will be positioned where
-        // the user placed them after the text is set)
-        // Note: Images are typically inserted at the cursor position and will
-        // need to be manually repositioned by the user if text changes significantly
-        savedImages.forEach(img => {
+        // Re-insert saved images at the end of the content
+        // Note: Original positions are not preserved; images are appended sequentially
+        if (savedImages.length > 0) {
+            // Add a line break before images if there's text content
+            if (element.textContent.trim().length > 0) {
+                element.appendChild(document.createElement('br'));
+            }
+            savedImages.forEach((img, index) => {
+                element.appendChild(img);
+                // Add spacing between images
+                if (index < savedImages.length - 1) {
+                    element.appendChild(document.createElement('br'));
+                }
+            });
+            // Add a trailing line break
             element.appendChild(document.createElement('br'));
-            element.appendChild(img);
-            element.appendChild(document.createElement('br'));
-        });
+        }
         
         applyRealtimeFormatting(element);
         if (cursorPos) {
