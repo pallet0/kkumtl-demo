@@ -805,24 +805,80 @@
             const beforeBr = document.createElement('br');
             const afterBr = document.createElement('br');
             
+            // Create a text node with a zero-width space after the image
+            // This provides a valid cursor position after the non-editable image container
+            const textNodeAfter = document.createTextNode('\u200B');
+            
+            // Insert nodes: each insertNode inserts at the collapsed range position,
+            // so we insert in reverse visual order (last-to-first)
+            range.insertNode(textNodeAfter);
             range.insertNode(afterBr);
             range.insertNode(imageContainer);
             range.insertNode(beforeBr);
             
-            // Move cursor after the image
-            range.setStartAfter(afterBr);
-            range.setEndAfter(afterBr);
+            // Move cursor to the text node after the image
+            // Position cursor at the end of the zero-width space (offset 1)
+            const newRange = document.createRange();
+            newRange.setStart(textNodeAfter, 1);
+            newRange.setEnd(textNodeAfter, 1);
             selection.removeAllRanges();
-            selection.addRange(range);
+            selection.addRange(newRange);
         } else {
-            // If no selection, append to end
+            // If no selection, append to end with proper cursor positioning
             editor.appendChild(document.createElement('br'));
             editor.appendChild(imageContainer);
             editor.appendChild(document.createElement('br'));
+            
+            // Add a text node at the end for cursor positioning
+            const textNodeEnd = document.createTextNode('\u200B');
+            editor.appendChild(textNodeEnd);
+            
+            // Place cursor at the end of the text node
+            const newRange = document.createRange();
+            newRange.setStart(textNodeEnd, 1);
+            newRange.setEnd(textNodeEnd, 1);
+            selection.removeAllRanges();
+            selection.addRange(newRange);
         }
         
-        // Focus back on editor
+        // Focus back on editor - this is crucial for keyboard input to work
         editor.focus();
+        
+        // Use setTimeout(0) to defer cursor recovery to the next event loop tick.
+        // This allows the browser to complete DOM updates and layout calculations
+        // triggered by insertNode and focus() before we attempt cursor positioning.
+        // Without this delay, some browsers may reset or lose the cursor selection.
+        setTimeout(() => {
+            // Re-focus and ensure cursor is in an editable position
+            if (document.activeElement !== editor) {
+                editor.focus();
+            }
+            
+            // Try to place cursor at the end of the editor's text content
+            // if selection was lost during focus
+            const currentSelection = window.getSelection();
+            if (!currentSelection.rangeCount || !editor.contains(currentSelection.anchorNode)) {
+                // Find the last text node in the editor
+                const treeWalker = document.createTreeWalker(
+                    editor,
+                    NodeFilter.SHOW_TEXT,
+                    null,
+                    false
+                );
+                let lastTextNode = null;
+                while (treeWalker.nextNode()) {
+                    lastTextNode = treeWalker.currentNode;
+                }
+                if (lastTextNode) {
+                    const recoverRange = document.createRange();
+                    recoverRange.setStart(lastTextNode, lastTextNode.length);
+                    recoverRange.setEnd(lastTextNode, lastTextNode.length);
+                    currentSelection.removeAllRanges();
+                    currentSelection.addRange(recoverRange);
+                }
+            }
+        }, 0);
+        
         updateStats();
     }
 
