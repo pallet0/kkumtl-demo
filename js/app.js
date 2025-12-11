@@ -421,6 +421,9 @@
                     e.preventDefault();
                     
                     // Insert a line break and a text node for cursor positioning
+                    // Using insertNode places nodes at the range start, so we insert
+                    // in reverse visual order (text node first, then br) to get:
+                    // [br][textNode] in the DOM
                     const br = document.createElement('br');
                     const textNode = document.createTextNode('\u200B');
                     
@@ -428,10 +431,11 @@
                     range.insertNode(textNode);
                     range.insertNode(br);
                     
-                    // Move cursor after the line break
+                    // Move cursor to end of the zero-width space (offset 1)
+                    // This is consistent with insertImageIntoEditor cursor positioning
                     const newRange = document.createRange();
-                    newRange.setStart(textNode, 0);
-                    newRange.setEnd(textNode, 0);
+                    newRange.setStart(textNode, 1);
+                    newRange.setEnd(textNode, 1);
                     selection.removeAllRanges();
                     selection.addRange(newRange);
                     
