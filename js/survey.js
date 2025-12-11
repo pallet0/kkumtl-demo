@@ -146,18 +146,45 @@
     }
 
     /**
-     * Fetches user IP address
+     * Fetches user IP address using multiple fallback services
      * @returns {Promise<string>} - IP address
      */
     async function fetchUserIP() {
-        try {
-            const response = await fetch('https://jsonip.com?format=json');
-            const data = await response.json();
-            return data.ip;
-        } catch (error) {
-            console.warn('Could not fetch IP:', error);
-            return 'unknown';
+        // List of IP detection services to try in order
+        const ipServices = [
+            {
+                url: 'https://api.ipify.org?format=json',
+                parser: (data) => data.ip
+            },
+            {
+                url: 'https://ipinfo.io/json',
+                parser: (data) => data.ip
+            },
+            {
+                url: 'https://jsonip.com/',
+                parser: (data) => data.ip
+            }
+        ];
+
+        for (const service of ipServices) {
+            try {
+                const response = await fetch(service.url);
+                if (!response.ok) {
+                    continue;
+                }
+                const data = await response.json();
+                const ip = service.parser(data);
+                if (ip && ip !== 'unknown') {
+                    return ip;
+                }
+            } catch (error) {
+                console.warn(`IP service ${service.url} failed:`, error);
+                // Continue to next service
+            }
         }
+
+        console.warn('All IP detection services failed');
+        return 'unknown';
     }
 
     /**
