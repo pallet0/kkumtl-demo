@@ -731,19 +731,31 @@ Tips:
                         if (mutation.attributeName === 'class') {
                             const target = mutation.target;
                             
-                            // Sync Generate button visibility
+                            // Sync Generate button visibility (only hidden class)
                             if (target === btnGenerate && btnGenerateMobile) {
-                                btnGenerateMobile.className = target.className;
+                                if (target.classList.contains('hidden')) {
+                                    btnGenerateMobile.classList.add('hidden');
+                                } else {
+                                    btnGenerateMobile.classList.remove('hidden');
+                                }
                             }
                             
-                            // Sync Generate Image button visibility
+                            // Sync Generate Image button visibility (only hidden class)
                             if (target === btnGenerateImage && btnGenerateImageMobile) {
-                                btnGenerateImageMobile.className = target.className;
+                                if (target.classList.contains('hidden')) {
+                                    btnGenerateImageMobile.classList.add('hidden');
+                                } else {
+                                    btnGenerateImageMobile.classList.remove('hidden');
+                                }
                             }
                             
-                            // Sync Stop button visibility
+                            // Sync Stop button visibility (only hidden class)
                             if (target === btnStop && btnStopMobile) {
-                                btnStopMobile.className = target.className;
+                                if (target.classList.contains('hidden')) {
+                                    btnStopMobile.classList.add('hidden');
+                                } else {
+                                    btnStopMobile.classList.remove('hidden');
+                                }
                             }
                         }
                     });
