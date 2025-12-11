@@ -217,7 +217,7 @@ const RateLimitModule = (function() {
         if (state.imageGenerationCount >= CONFIG.MAX_IMAGE_GENERATIONS_PER_IP) {
             return {
                 allowed: false,
-                reason: `You have reached the maximum number of image generations (${CONFIG.MAX_IMAGE_GENERATIONS_PER_IP}). Please contact an administrator for extended access.`
+                reason: `최대 이미지 생성 횟수에 도달했습니다 (${CONFIG.MAX_IMAGE_GENERATIONS_PER_IP}회). 추가 권한을 위해 관리자에게 문의하세요.`
             };
         }
 
@@ -242,7 +242,7 @@ const RateLimitModule = (function() {
         if (state.generationCount >= CONFIG.MAX_GENERATIONS_PER_IP) {
             return {
                 allowed: false,
-                reason: `You have reached the maximum number of generations (${CONFIG.MAX_GENERATIONS_PER_IP}). Please contact an administrator for extended access.`
+                reason: `최대 생성 횟수에 도달했습니다 (${CONFIG.MAX_GENERATIONS_PER_IP}회). 추가 권한을 위해 관리자에게 문의하세요.`
             };
         }
 
@@ -278,7 +278,7 @@ const RateLimitModule = (function() {
         if (tokenCount > CONFIG.MAX_INPUT_TOKENS) {
             return {
                 allowed: false,
-                reason: `Your input exceeds the maximum token limit (${tokenCount} tokens / ${CONFIG.MAX_INPUT_TOKENS} max). Please shorten your input text.`,
+                reason: `입력이 최대 토큰 제한을 초과했습니다 (${tokenCount} 토큰 / 최대 ${CONFIG.MAX_INPUT_TOKENS} 토큰). 입력 텍스트를 줄여주세요.`,
                 tokenCount
             };
         }

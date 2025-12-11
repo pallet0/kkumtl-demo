@@ -279,7 +279,7 @@
             for (let option of modelSelect.options) {
                 if (option.value !== 'gemini-2.5-pro' && !option.disabled) {
                     option.disabled = true;
-                    option.textContent += ' (Admin only)';
+                    option.textContent += ' (관리자 전용)';
                 }
             }
         }
