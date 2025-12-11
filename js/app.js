@@ -386,6 +386,50 @@
             }, 500)();
         });
 
+        // Handle Enter key explicitly to ensure it works near non-editable image containers
+        editor.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.ctrlKey && !e.metaKey) {
+                const selection = window.getSelection();
+                if (!selection.rangeCount) return;
+                
+                const range = selection.getRangeAt(0);
+                const anchorNode = selection.anchorNode;
+                
+                // Check if manual line break is needed (cursor at zero-width space near non-editable element)
+                const needsManualLineBreak = anchorNode && 
+                    anchorNode.nodeType === Node.TEXT_NODE && 
+                    anchorNode.textContent && 
+                    (/^\u200B+$/.test(anchorNode.textContent) || 
+                     (anchorNode.previousSibling?.contentEditable === 'false') ||
+                     (anchorNode.nextSibling?.contentEditable === 'false'));
+                
+                if (needsManualLineBreak) {
+                    e.preventDefault();
+                    
+                    // Insert a line break and a text node for cursor positioning.
+                    // insertNode places each node at the current range position,
+                    // so after these two calls the DOM will be: [br][textNode]
+                    const br = document.createElement('br');
+                    const textNode = document.createTextNode('\u200B');
+                    
+                    range.deleteContents();
+                    range.insertNode(textNode);
+                    range.insertNode(br);
+                    
+                    // Move cursor to end of the zero-width space (offset 1)
+                    // This is consistent with insertImageIntoEditor cursor positioning
+                    const newRange = document.createRange();
+                    newRange.setStart(textNode, 1);
+                    newRange.setEnd(textNode, 1);
+                    selection.removeAllRanges();
+                    selection.addRange(newRange);
+                    
+                    // Trigger input event for formatting and stats update
+                    editor.dispatchEvent(new Event('input', { bubbles: true }));
+                }
+            }
+        });
+
         // Update cursor position
         editor.addEventListener('click', updateCursorDisplay);
         editor.addEventListener('keyup', updateCursorDisplay);
