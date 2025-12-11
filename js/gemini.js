@@ -991,7 +991,7 @@ Example approach: "The letter sat unopened on the table. She knew that handwriti
         const genre = settings.genre || 'fantasy';
         const tone = settings.tone || 'neutral';
         
-        const prompt = `You are an illustrator for a ${genre} novel. Create a single artistic illustration that captures the essence of the following scene from the story.
+        const prompt = `You are an illustrator for a ${genre} novel. Create a textless, wordless illustration that captures the scene from the story.
 
 Genre: ${genre}
 Tone: ${tone}
@@ -1000,13 +1000,6 @@ Recent story context:
 """
 ${recentText}
 """
-
-Generate a beautiful, evocative illustration that:
-- Captures the mood and atmosphere of the scene
-- Shows key characters, settings, or moments described in the text
-- Uses an artistic style appropriate for a ${genre} novel
-- Has a composition suitable for a book illustration
-- Does NOT include any text or words in the image
 
 Create the illustration now.`;
 
