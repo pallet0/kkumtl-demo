@@ -15,9 +15,13 @@ const FormatterModule = (function() {
 
     // Regex patterns for different text elements (kept for reference, not strictly required)
     const PATTERNS = {
+        // Dialogue: straight double quotes "..." and curly double quotes "..."
         dialogue: /"([^"]+)"/g,
+        dialogueCurly: /\u201C([^\u201D]+)\u201D/g,
         // Thoughts pattern requires space/start before opening quote to avoid contractions/possessives
+        // Supports both straight single quotes '...' and curly single quotes '...'
         thoughts: /(^|[\s])'([^']+)'/g,
+        thoughtsCurly: /(^|[\s])\u2018([^\u2019]+)\u2019/g,
         
         // Asterisk emphasis: *important*
         emphasis: /\*([^*]+)\*/g
@@ -109,20 +113,32 @@ const FormatterModule = (function() {
         // Apply formatting patterns
         // Note: escapeHtml() does not encode quotes, so we match actual quote characters
         
-        // 1. Dialogue (double quotes)
+        // 1. Dialogue (straight double quotes "...")
         formattedHtml = formattedHtml.replace(
             /"([^"]+)"/g,
             (match, content) => `<span class="dialogue">"${content}"</span>`
         );
         
-        // 2. Thoughts (single quotes) - requires space/start before opening quote
+        // 2. Dialogue (curly double quotes "...")
+        formattedHtml = formattedHtml.replace(
+            /\u201C([^\u201D]+)\u201D/g,
+            (match, content) => `<span class="dialogue">\u201C${content}\u201D</span>`
+        );
+        
+        // 3. Thoughts (straight single quotes '...') - requires space/start before opening quote
         // to avoid matching contractions (don't) and possessives (John's)
         formattedHtml = formattedHtml.replace(
             /(^|[\s])'([^']+)'/g,
             (match, prefix, content) => `${prefix}<span class="thoughts">'${content}'</span>`
         );
         
-        // 3. Emphasis (asterisks)
+        // 4. Thoughts (curly single quotes '...') - requires space/start before opening quote
+        formattedHtml = formattedHtml.replace(
+            /(^|[\s])\u2018([^\u2019]+)\u2019/g,
+            (match, prefix, content) => `${prefix}<span class="thoughts">\u2018${content}\u2019</span>`
+        );
+        
+        // 5. Emphasis (asterisks)
         formattedHtml = formattedHtml.replace(
             /\*([^*]+)\*/g,
             (match, content) => `<span class="emphasis">${content}</span>`
