@@ -5,6 +5,183 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>KKumtl - core</title>
     <link rel="stylesheet" href="css/styles.css">
+    
+    <!-- Mobile Responsive Styles -->
+    <style>
+        @media (max-width: 768px) {
+            /* Reorder main content for mobile: header -> buttons -> editor -> parameters */
+            .main-content {
+                flex-direction: column;
+                overflow-y: auto;
+            }
+            
+            /* App container adjustments */
+            #app-container {
+                height: auto;
+                min-height: 100vh;
+                overflow-y: auto;
+            }
+            
+            body {
+                overflow-y: auto;
+                height: auto;
+            }
+            
+            /* Header - stays at top */
+            .app-header {
+                flex-wrap: wrap;
+                height: auto;
+                padding: 12px 16px;
+                gap: 8px;
+            }
+            
+            .header-left {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .header-center {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .header-right {
+                width: 100%;
+                justify-content: center;
+                flex-wrap: wrap;
+                gap: 10px;
+            }
+            
+            /* Mobile Generate Buttons - show prominently below header */
+            .mobile-generate-buttons {
+                display: flex !important;
+                flex-direction: row;
+                justify-content: center;
+                gap: 12px;
+                padding: 12px 16px;
+                background: white;
+                border-bottom: 1px solid var(--border-color);
+                flex-wrap: wrap;
+            }
+            
+            .mobile-generate-buttons .btn {
+                flex: 1;
+                min-width: 120px;
+                max-width: 180px;
+            }
+            
+            /* Hide toolbar center buttons on mobile (moved to mobile-generate-buttons) */
+            .editor-toolbar .toolbar-center {
+                display: none;
+            }
+            
+            /* Simplify toolbar for mobile */
+            .editor-toolbar {
+                height: auto;
+                padding: 8px 12px;
+                justify-content: space-between;
+            }
+            
+            .toolbar-left, .toolbar-right {
+                gap: 4px;
+            }
+            
+            /* Editor container - comes first after buttons */
+            .editor-container {
+                order: -1;
+                min-height: 50vh;
+            }
+            
+            .editor-wrapper {
+                padding: 10px;
+            }
+            
+            .editor-textarea {
+                padding: 16px;
+                font-size: 16px;
+                min-height: 300px;
+            }
+            
+            /* Sidebars - show as sections below editor */
+            .sidebar {
+                width: 100%;
+                order: 2;
+                border-right: none;
+                border-left: none;
+                border-top: 1px solid var(--border-color);
+                max-height: none;
+            }
+            
+            .sidebar-left {
+                display: block !important;
+                order: 2;
+            }
+            
+            .sidebar-right {
+                display: block !important;
+                order: 3;
+            }
+            
+            /* Make setting groups more compact on mobile */
+            .sidebar-section {
+                margin-bottom: 15px;
+                padding-bottom: 15px;
+            }
+            
+            .setting-group {
+                margin-bottom: 12px;
+            }
+            
+            /* Preset buttons - 2 columns on mobile */
+            .preset-buttons {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            /* Editor footer adjustments */
+            .editor-footer {
+                flex-wrap: wrap;
+                height: auto;
+                padding: 8px 12px;
+                gap: 8px;
+            }
+            
+            .footer-left, .footer-center, .footer-right {
+                width: 100%;
+                text-align: center;
+            }
+        }
+        
+        /* Hide mobile generate buttons on desktop */
+        .mobile-generate-buttons {
+            display: none;
+        }
+        
+        /* Small mobile adjustments */
+        @media (max-width: 480px) {
+            .app-title {
+                font-size: 18px;
+            }
+            
+            .app-subtitle {
+                font-size: 11px;
+            }
+            
+            .mobile-generate-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .mobile-generate-buttons .btn {
+                width: 100%;
+                max-width: 250px;
+            }
+            
+            .survey-icons {
+                display: none;
+            }
+        }
+    </style>
+    
     <!-- Google Fonts for novel-like typography -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -136,6 +313,21 @@
                 </div>
             </div>
         </header>
+
+        <!-- ========================================
+             MOBILE GENERATE BUTTONS - Visible only on mobile
+             ======================================== -->
+        <div class="mobile-generate-buttons">
+            <button id="btn-generate-mobile" class="btn btn-generate" title="Generate from cursor">
+                ✨ Generate
+            </button>
+            <button id="btn-generate-image-mobile" class="btn btn-generate-image" title="Generate Image from context">
+                🎨 Image
+            </button>
+            <button id="btn-stop-mobile" class="btn btn-stop hidden" title="Stop Generation">
+                ⏹ Stop
+            </button>
+        </div>
 
         <!-- ========================================
              MAIN CONTENT AREA
@@ -497,5 +689,74 @@ Tips:
     <script src="js/gemini.js"></script>
     <script src="js/app.js"></script>
     <script src="js/survey.js"></script>
+    
+    <!-- Mobile Button Synchronization Script -->
+    <script>
+        (function() {
+            'use strict';
+            
+            // Wait for DOM to be ready
+            document.addEventListener('DOMContentLoaded', function() {
+                // Get references to desktop and mobile buttons
+                const btnGenerate = document.getElementById('btn-generate');
+                const btnGenerateImage = document.getElementById('btn-generate-image');
+                const btnStop = document.getElementById('btn-stop');
+                
+                const btnGenerateMobile = document.getElementById('btn-generate-mobile');
+                const btnGenerateImageMobile = document.getElementById('btn-generate-image-mobile');
+                const btnStopMobile = document.getElementById('btn-stop-mobile');
+                
+                // Sync mobile buttons with desktop buttons
+                if (btnGenerateMobile && btnGenerate) {
+                    btnGenerateMobile.addEventListener('click', function() {
+                        btnGenerate.click();
+                    });
+                }
+                
+                if (btnGenerateImageMobile && btnGenerateImage) {
+                    btnGenerateImageMobile.addEventListener('click', function() {
+                        btnGenerateImage.click();
+                    });
+                }
+                
+                if (btnStopMobile && btnStop) {
+                    btnStopMobile.addEventListener('click', function() {
+                        btnStop.click();
+                    });
+                }
+                
+                // Observe class changes on desktop buttons to sync visibility with mobile
+                const observer = new MutationObserver(function(mutations) {
+                    mutations.forEach(function(mutation) {
+                        if (mutation.attributeName === 'class') {
+                            const target = mutation.target;
+                            
+                            // Sync Generate button visibility
+                            if (target === btnGenerate && btnGenerateMobile) {
+                                btnGenerateMobile.className = target.className;
+                            }
+                            
+                            // Sync Generate Image button visibility
+                            if (target === btnGenerateImage && btnGenerateImageMobile) {
+                                btnGenerateImageMobile.className = target.className;
+                            }
+                            
+                            // Sync Stop button visibility
+                            if (target === btnStop && btnStopMobile) {
+                                btnStopMobile.className = target.className;
+                            }
+                        }
+                    });
+                });
+                
+                // Start observing desktop buttons for class changes
+                const observerConfig = { attributes: true, attributeFilter: ['class'] };
+                
+                if (btnGenerate) observer.observe(btnGenerate, observerConfig);
+                if (btnGenerateImage) observer.observe(btnGenerateImage, observerConfig);
+                if (btnStop) observer.observe(btnStop, observerConfig);
+            });
+        })();
+    </script>
 </body>
 </html>
