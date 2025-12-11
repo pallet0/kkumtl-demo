@@ -189,11 +189,11 @@
             
             // Show appropriate welcome message
             if (isAdmin) {
-                showAlert('success', 'Admin Access!', 'Application unlocked with administrator privileges. No limits applied.');
+                showAlert('success', '관리자 권한!', '관리자 권한으로 잠금이 해제되었습니다. 제한이 없습니다.');
             } else {
                 const remaining = RateLimitModule.getRemainingGenerations();
                 const remainingImages = RateLimitModule.getRemainingImageGenerations();
-                showAlert('success', 'Welcome!', `Application unlocked successfully. You have ${remaining} text generations and ${remainingImages} image generations remaining.`);
+                showAlert('success', '환영합니다!', `잠금이 해제되었습니다. 텍스트 생성 ${remaining}회, 이미지 생성 ${remainingImages}회가 남았습니다.`);
             }
             
         } catch (error) {
@@ -279,7 +279,7 @@
             for (let option of modelSelect.options) {
                 if (option.value !== 'gemini-2.5-pro' && !option.disabled) {
                     option.disabled = true;
-                    option.textContent += ' (Admin only)';
+                    option.textContent += ' (관리자 전용)';
                 }
             }
         }
@@ -296,20 +296,20 @@
         // New document
         elements.btnNew.addEventListener('click', () => {
             if (FormatterModule.getPlainText(elements.editorTextarea).trim() && 
-                !confirm('Create a new document? Unsaved changes will be lost.')) {
+                !confirm('새 문서를 만드시겠습니까? 저장하지 않은 변경사항은 사라집니다.')) {
                 return;
             }
             elements.editorTextarea.textContent = '';
             FormatterModule.applyRealtimeFormatting(elements.editorTextarea);
             StorageModule.clearHistory();
             updateStats();
-            showAlert('info', 'New Document', 'Started a fresh document.');
+            showAlert('info', '새 문서', '새 문서를 시작했습니다.');
         });
 
         // Save document
         elements.btnSave.addEventListener('click', () => {
             saveDocument();
-            showAlert('success', 'Saved', 'Document saved successfully.');
+            showAlert('success', '저장됨', '문서가 성공적으로 저장되었습니다.');
         });
 
         // Load document
@@ -341,24 +341,24 @@
         elements.btnExportTxt.addEventListener('click', () => {
             const text = FormatterModule.getPlainText(elements.editorTextarea);
             StorageModule.exportAsText(text);
-            showAlert('success', 'Exported', 'Document exported as text file.');
+            showAlert('success', '내보내기 완료', '문서를 텍스트 파일로 내보냈습니다.');
         });
 
         elements.btnExportHtml.addEventListener('click', () => {
             const text = FormatterModule.getPlainText(elements.editorTextarea);
             const formatting = getFormattingSettings();
             StorageModule.exportAsHtml(text, formatting);
-            showAlert('success', 'Exported', 'Document exported as HTML file.');
+            showAlert('success', '내보내기 완료', '문서를 HTML 파일로 내보냈습니다.');
         });
 
         // Reset settings
         elements.btnResetSettings.addEventListener('click', () => {
-            if (confirm('Reset all settings to defaults?')) {
+            if (confirm('모든 설정을 기본값으로 초기화하시겠습니까?')) {
                 StorageModule.resetSettings();
                 StorageModule.resetFormatting();
                 loadSavedSettings();
                 loadSavedFormatting();
-                showAlert('info', 'Reset', 'Settings restored to defaults.');
+                showAlert('info', '초기화됨', '설정이 기본값으로 복원되었습니다.');
             }
         });
     }
@@ -450,7 +450,7 @@
      */
     function updateCursorDisplay() {
         const pos = FormatterModule.getCursorPosition(elements.editorTextarea);
-        elements.cursorPosition.textContent = `Line ${pos.line}, Column ${pos.column}`;
+        elements.cursorPosition.textContent = `${pos.line}줄, ${pos.column}열`;
     }
 
     // ========================================
@@ -569,7 +569,13 @@
                     // Apply and save
                     applyAndSaveFormatting();
                     
-                    showAlert('success', 'Theme Applied', `${presetName.charAt(0).toUpperCase() + presetName.slice(1)} theme activated.`);
+                    const presetNames = {
+                        'sepia': '세피아',
+                        'dark': '다크',
+                        'light': '라이트',
+                        'paper': '종이'
+                    };
+                    showAlert('success', '테마 적용됨', `${presetNames[presetName] || presetName} 테마가 활성화되었습니다.`);
                 }
             });
         });
@@ -634,7 +640,7 @@
             if (e.ctrlKey && e.key === 's') {
                 e.preventDefault();
                 saveDocument();
-                showAlert('success', 'Saved', 'Document saved.');
+                showAlert('success', '저장됨', '문서가 저장되었습니다.');
             }
         });
     }
@@ -654,7 +660,7 @@
         // Check rate limits before generating
         const rateLimitCheck = RateLimitModule.canGenerate();
         if (!rateLimitCheck.allowed) {
-            showAlert('warning', 'Generation Limit Reached', rateLimitCheck.reason);
+            showAlert('warning', '생성 한도 도달', rateLimitCheck.reason);
             return;
         }
 
@@ -667,7 +673,7 @@
         // Check input token limit before generating
         const inputTokenCheck = RateLimitModule.checkInputTokenLimit(textBefore);
         if (!inputTokenCheck.allowed) {
-            showAlert('warning', 'Input Token Limit Exceeded', inputTokenCheck.reason);
+            showAlert('warning', '입력 토큰 한도 초과', inputTokenCheck.reason);
             return;
         }
 
@@ -727,9 +733,9 @@
                 const wordCount = FormatterModule.countWords(generatedText);
                 const remaining = RateLimitModule.getRemainingGenerations();
                 if (RateLimitModule.isAdmin()) {
-                    elements.generationInfo.textContent = `Generated ${wordCount} words (Admin)`;
+                    elements.generationInfo.textContent = `${wordCount}단어 생성됨 (관리자)`;
                 } else {
-                    elements.generationInfo.textContent = `Generated ${wordCount} words (${remaining} remaining)`;
+                    elements.generationInfo.textContent = `${wordCount}단어 생성됨 (${remaining}회 남음)`;
                 }
                 
                 setTimeout(() => {
@@ -756,7 +762,7 @@
         // Check rate limits before generating
         const rateLimitCheck = RateLimitModule.canGenerateImage();
         if (!rateLimitCheck.allowed) {
-            showAlert('warning', 'Image Generation Limit Reached', rateLimitCheck.reason);
+            showAlert('warning', '이미지 생성 한도 도달', rateLimitCheck.reason);
             return;
         }
 
@@ -764,7 +770,7 @@
         const fullText = FormatterModule.getPlainText(editor);
 
         if (!fullText.trim()) {
-            showAlert('warning', 'No Context', 'Please write some text first before generating an image. The image will be based on your story context.');
+            showAlert('warning', '내용이 없습니다', '이미지를 생성하기 전에 먼저 텍스트를 작성해주세요. 이미지는 이야기의 맥락을 기반으로 생성됩니다.');
             return;
         }
 
@@ -792,16 +798,16 @@
                 // Show info with remaining generations
                 const remaining = RateLimitModule.getRemainingImageGenerations();
                 if (RateLimitModule.isAdmin()) {
-                    elements.generationInfo.textContent = 'Image generated (Admin)';
+                    elements.generationInfo.textContent = '이미지 생성됨 (관리자)';
                 } else {
-                    elements.generationInfo.textContent = `Image generated (${remaining} images remaining)`;
+                    elements.generationInfo.textContent = `이미지 생성됨 (${remaining}장 남음)`;
                 }
                 
                 setTimeout(() => {
                     elements.generationInfo.textContent = '';
                 }, 3000);
                 
-                showAlert('success', 'Image Generated', 'An illustration has been added to your story.');
+                showAlert('success', '이미지 생성 완료', '이야기에 삽화가 추가되었습니다.');
             },
             // onError - called on error
             (error) => {
@@ -835,7 +841,7 @@
         const deleteBtn = document.createElement('button');
         deleteBtn.className = 'novel-image-delete';
         deleteBtn.innerHTML = '×';
-        deleteBtn.title = 'Delete image';
+        deleteBtn.title = '이미지 삭제';
         
         imageContainer.appendChild(img);
         imageContainer.appendChild(deleteBtn);
@@ -935,7 +941,7 @@
             if (e.target.classList.contains('novel-image-delete')) {
                 e.preventDefault();
                 e.stopPropagation();
-                if (confirm('Delete this image?')) {
+                if (confirm('이 이미지를 삭제하시겠습니까?')) {
                     const container = e.target.closest('.novel-image-container');
                     if (container) {
                         container.remove();
@@ -966,10 +972,10 @@
         const statusIndicator = elements.statusIndicator;
         if (isGenerating) {
             statusIndicator.className = 'status-generating';
-            statusIndicator.innerHTML = '<span class="status-dot"></span><span class="status-text">Generating...</span>';
+            statusIndicator.innerHTML = '<span class="status-dot"></span><span class="status-text">생성 중...</span>';
         } else {
             statusIndicator.className = 'status-idle';
-            statusIndicator.innerHTML = '<span class="status-dot"></span><span class="status-text">Ready</span>';
+            statusIndicator.innerHTML = '<span class="status-dot"></span><span class="status-text">준비됨</span>';
         }
 
         // Toggle buttons
@@ -1000,10 +1006,10 @@
         const statusIndicator = elements.statusIndicator;
         if (isGenerating) {
             statusIndicator.className = 'status-generating';
-            statusIndicator.innerHTML = '<span class="status-dot"></span><span class="status-text">Generating Image...</span>';
+            statusIndicator.innerHTML = '<span class="status-dot"></span><span class="status-text">이미지 생성 중...</span>';
         } else if (!state.isGenerating) {
             statusIndicator.className = 'status-idle';
-            statusIndicator.innerHTML = '<span class="status-dot"></span><span class="status-text">Ready</span>';
+            statusIndicator.innerHTML = '<span class="status-dot"></span><span class="status-text">준비됨</span>';
         }
 
         // Toggle buttons
@@ -1014,9 +1020,9 @@
         // Toggle loading overlay
         elements.loadingOverlay.classList.toggle('hidden', !isGenerating);
         if (isGenerating) {
-            elements.loadingOverlay.querySelector('.loading-text').textContent = 'Generating Image...';
+            elements.loadingOverlay.querySelector('.loading-text').textContent = '이미지 생성 중...';
         } else {
-            elements.loadingOverlay.querySelector('.loading-text').textContent = 'Generating...';
+            elements.loadingOverlay.querySelector('.loading-text').textContent = '생성 중...';
         }
 
         // Disable/enable contenteditable during generation
@@ -1090,7 +1096,7 @@
             const content = await StorageModule.readFile(file);
             
             if (FormatterModule.getPlainText(elements.editorTextarea).trim() && 
-                !confirm('Load this file? Current content will be replaced.')) {
+                !confirm('이 파일을 불러오시겠습니까? 현재 내용이 대체됩니다.')) {
                 return;
             }
 
@@ -1098,9 +1104,9 @@
             StorageModule.pushHistory(content);
             updateStats();
             
-            showAlert('success', 'File Loaded', `Loaded "${file.name}" successfully.`);
+            showAlert('success', '파일 불러오기 완료', `"${file.name}" 파일을 불러왔습니다.`);
         } catch (error) {
-            showAlert('error', 'Load Failed', 'Could not read the file. Please try again.');
+            showAlert('error', '불러오기 실패', '파일을 읽을 수 없습니다. 다시 시도해주세요.');
         }
 
         // Reset file input
@@ -1120,7 +1126,7 @@
         state.isFullscreen = !state.isFullscreen;
         document.body.classList.toggle('fullscreen-mode', state.isFullscreen);
         
-        elements.btnFullscreen.textContent = state.isFullscreen ? '⛶ Exit' : '⛶ Focus';
+        elements.btnFullscreen.textContent = state.isFullscreen ? '⛶ 나가기' : '⛶ 집중';
     }
 
     // ========================================
@@ -1265,11 +1271,11 @@
             const diff = Math.floor((now - state.lastSaveTime) / 1000);
             
             if (diff < 60) {
-                elements.autosaveStatus.textContent = 'Just saved';
+                elements.autosaveStatus.textContent = '방금 저장됨';
             } else if (diff < 3600) {
-                elements.autosaveStatus.textContent = `Saved ${Math.floor(diff / 60)}m ago`;
+                elements.autosaveStatus.textContent = `${Math.floor(diff / 60)}분 전 저장됨`;
             } else {
-                elements.autosaveStatus.textContent = `Saved ${Math.floor(diff / 3600)}h ago`;
+                elements.autosaveStatus.textContent = `${Math.floor(diff / 3600)}시간 전 저장됨`;
             }
         }
     }

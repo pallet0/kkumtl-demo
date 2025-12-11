@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ko">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KKumtl - core</title>
+    <title>꿈틀 - 나만의 소설 쓰기</title>
     <link rel="stylesheet" href="css/styles.css">
     
     <!-- Mobile Responsive Styles -->
@@ -215,15 +215,15 @@
     <div id="password-modal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2>🔐 Enter Access Password</h2>
+                <h2>🔐 비밀번호 입력</h2>
             </div>
             <div class="modal-body">
-                <p>Please enter your password to unlock the AI writing features.</p>
-                <input type="password" id="password-input" placeholder="Enter password..." autocomplete="off">
+                <p>AI 글쓰기 기능을 사용하려면 비밀번호를 입력해주세요.</p>
+                <input type="password" id="password-input" placeholder="비밀번호를 입력하세요..." autocomplete="off">
                 <div id="password-error" class="error-message hidden"></div>
             </div>
             <div class="modal-footer">
-                <button id="password-submit" class="btn btn-primary">Unlock</button>
+                <button id="password-submit" class="btn btn-primary">잠금 해제</button>
             </div>
         </div>
     </div>
@@ -234,54 +234,54 @@
     <div id="survey-modal" class="modal hidden">
         <div class="modal-content survey-modal-content">
             <div class="modal-header">
-                <h2>📝 Share Your Feedback</h2>
+                <h2>📝 피드백 남기기</h2>
                 <button id="survey-close" class="modal-close-btn" aria-label="Close">&times;</button>
             </div>
             <div class="modal-body">
                 <!-- Satisfaction Question -->
                 <div class="survey-question">
-                    <label class="survey-label">Do you find this service satisfactory?</label>
+                    <label class="survey-label">이 서비스가 만족스러우신가요?</label>
                     <div class="survey-satisfaction">
                         <button id="survey-satisfactory" class="satisfaction-btn" data-value="satisfactory">
                             <span class="thumbs-icon large">👍</span>
-                            <span>Satisfactory</span>
+                            <span>만족</span>
                         </button>
                         <button id="survey-unsatisfactory" class="satisfaction-btn" data-value="unsatisfactory">
                             <span class="thumbs-icon large">👎</span>
-                            <span>Unsatisfactory</span>
+                            <span>불만족</span>
                         </button>
                     </div>
                 </div>
 
                 <!-- Likes Reading Novels Question -->
                 <div class="survey-question">
-                    <label class="survey-label">Do you like reading novels/web novels/light novels?</label>
+                    <label class="survey-label">소설/웹소설/라이트노벨 읽기를 좋아하시나요?</label>
                     <div class="toggle-group survey-toggle">
-                        <span class="toggle-label-text">No</span>
+                        <span class="toggle-label-text">아니오</span>
                         <label class="toggle-switch">
                             <input type="checkbox" id="survey-likes-novels">
                             <span class="toggle-slider"></span>
                         </label>
-                        <span class="toggle-label-text">Yes</span>
+                        <span class="toggle-label-text">예</span>
                     </div>
                 </div>
 
                 <!-- Email Question -->
                 <div class="survey-question">
-                    <label class="survey-label" for="survey-email">Your email (for follow-up)</label>
+                    <label class="survey-label" for="survey-email">이메일 주소 (후속 연락용)</label>
                     <input type="email" id="survey-email" class="survey-input" placeholder="your@email.com">
                 </div>
 
                 <!-- Suggestions Question -->
                 <div class="survey-question">
-                    <label class="survey-label" for="survey-suggestions">Any suggestions or feedback?</label>
-                    <textarea id="survey-suggestions" class="survey-textarea" placeholder="Share your thoughts..." rows="4"></textarea>
+                    <label class="survey-label" for="survey-suggestions">건의사항이나 피드백이 있으신가요?</label>
+                    <textarea id="survey-suggestions" class="survey-textarea" placeholder="의견을 자유롭게 작성해주세요..." rows="4"></textarea>
                 </div>
 
                 <div id="survey-error" class="error-message hidden"></div>
             </div>
             <div class="modal-footer">
-                <button id="survey-submit" class="btn btn-primary">Submit Feedback</button>
+                <button id="survey-submit" class="btn btn-primary">피드백 제출</button>
             </div>
         </div>
     </div>
@@ -312,25 +312,25 @@
                 <!-- Generation Status Indicator -->
                 <div id="status-indicator" class="status-idle">
                     <span class="status-dot"></span>
-                    <span class="status-text">Ready</span>
+                    <span class="status-text">준비됨</span>
                 </div>
             </div>
             <div class="header-right">
                 <!-- Remaining Generations Display -->
                 <div id="remaining-generations" class="remaining-generations hidden">
-                    <span id="remaining-count">0</span> generations left
+                    <span id="remaining-count">0</span>회 남음
                 </div>
                 <!-- Remaining Image Generations Display -->
                 <div id="remaining-image-generations" class="remaining-image-generations hidden">
-                    <span id="remaining-image-count">0</span> images left
+                    <span id="remaining-image-count">0</span>장 남음
                 </div>
                 <!-- Word Count Display -->
                 <div class="word-count">
-                    <span id="word-count">0</span> words
+                    <span id="word-count">0</span>단어
                 </div>
                 <!-- Character Count Display -->
                 <div class="char-count">
-                    <span id="char-count">0</span> chars
+                    <span id="char-count">0</span>글자
                 </div>
             </div>
         </header>
@@ -339,21 +339,21 @@
              MOBILE GENERATE BUTTONS - Visible only on mobile
              ======================================== -->
         <div class="mobile-generate-buttons">
-            <button id="btn-generate-mobile" class="btn btn-generate" title="Generate from cursor">
-                ✨ Generate
+            <button id="btn-generate-mobile" class="btn btn-generate" title="커서 위치에서 생성">
+                ✨ 생성
             </button>
-            <button id="btn-generate-image-mobile" class="btn btn-generate-image" title="Generate Image from context">
-                🎨 Image
+            <button id="btn-generate-image-mobile" class="btn btn-generate-image" title="문맥에서 이미지 생성">
+                🎨 이미지
             </button>
-            <button id="btn-stop-mobile" class="btn btn-stop hidden" title="Stop Generation">
-                ⏹ Stop
+            <button id="btn-stop-mobile" class="btn btn-stop hidden" title="생성 중지">
+                ⏹ 중지
             </button>
             <!-- Mobile Survey Icons -->
             <div class="mobile-survey-icons">
-                <button id="survey-thumbs-up-mobile" class="survey-icon-btn mobile" title="Like this service">
+                <button id="survey-thumbs-up-mobile" class="survey-icon-btn mobile" title="서비스 좋아요">
                     <span class="thumbs-icon">👍</span>
                 </button>
-                <button id="survey-thumbs-down-mobile" class="survey-icon-btn mobile" title="Dislike this service">
+                <button id="survey-thumbs-down-mobile" class="survey-icon-btn mobile" title="서비스 싫어요">
                     <span class="thumbs-icon">👎</span>
                 </button>
             </div>
@@ -369,11 +369,11 @@
                  ======================================== -->
             <aside class="sidebar sidebar-left">
                 <div class="sidebar-section">
-                    <h3 class="section-title">⚙️ Generation Settings</h3>
+                    <h3 class="section-title">⚙️ 생성 설정</h3>
                     
                     <!-- Model Selection -->
                     <div class="setting-group">
-                        <label for="model-select">AI Model</label>
+                        <label for="model-select">AI 모델</label>
                         <select id="model-select" class="setting-input">
                             <option value="gemini-2.5-pro">Gemini 2.5 Pro</option>
                             <option value="gemini-2.5-flash">Gemini 2.5 Flash</option>
@@ -384,42 +384,42 @@
                     <!-- Temperature Control -->
                     <div class="setting-group">
                         <label for="temperature-slider">
-                            Temperature: <span id="temperature-value">0.8</span>
+                            창의성: <span id="temperature-value">0.8</span>
                         </label>
                         <input type="range" id="temperature-slider" class="setting-slider" 
                                min="0" max="2" step="0.1" value="0.8">
                         <div class="slider-labels">
-                            <span>Focused</span>
-                            <span>Creative</span>
+                            <span>정확함</span>
+                            <span>창의적</span>
                         </div>
                     </div>
 
                     <!-- Max Words Control -->
                     <div class="setting-group">
                         <label for="max-words-slider">
-                            Max Words: <span id="max-words-value">150</span>
+                            최대 단어 수: <span id="max-words-value">150</span>
                         </label>
                         <input type="range" id="max-words-slider" class="setting-slider" 
                                min="50" max="500" step="25" value="150">
                         <div class="slider-labels">
-                            <span>Short</span>
-                            <span>Long</span>
+                            <span>짧게</span>
+                            <span>길게</span>
                         </div>
                     </div>
 
                     <!-- Paragraph Length -->
                     <div class="setting-group">
-                        <label for="paragraph-length">Paragraph Length</label>
+                        <label for="paragraph-length">문단 길이</label>
                         <select id="paragraph-length" class="setting-input">
-                            <option value="short">Short (2-3 sentences)</option>
-                            <option value="medium" selected>Medium (4-6 sentences)</option>
-                            <option value="long">Long (7+ sentences)</option>
+                            <option value="short">짧음 (2-3문장)</option>
+                            <option value="medium" selected>보통 (4-6문장)</option>
+                            <option value="long">긴 (7문장 이상)</option>
                         </select>
                     </div>
 
                     <!-- Language Selection -->
                     <div class="setting-group">
-                        <label for="language-select">Language</label>
+                        <label for="language-select">언어</label>
                         <select id="language-select" class="setting-input">
                             <option value="EN" selected>English</option>
                             <option value="KR">한국어 (Korean)</option>
@@ -429,57 +429,57 @@
                 </div>
 
                 <div class="sidebar-section">
-                    <h3 class="section-title">📚 Story Settings</h3>
+                    <h3 class="section-title">📚 스토리 설정</h3>
                     
                     <!-- Genre Selection -->
                     <div class="setting-group">
-                        <label for="genre-select">Genre</label>
+                        <label for="genre-select">장르</label>
                         <select id="genre-select" class="setting-input">
-                            <option value="fantasy">Fantasy</option>
-                            <option value="scifi">Science Fiction</option>
-                            <option value="romance">Romance</option>
-                            <option value="mystery">Mystery/Thriller</option>
-                            <option value="horror">Horror</option>
-                            <option value="literary">Literary Fiction</option>
-                            <option value="adventure">Adventure</option>
-                            <option value="historical">Historical Fiction</option>
+                            <option value="fantasy">판타지</option>
+                            <option value="scifi">SF</option>
+                            <option value="romance">로맨스</option>
+                            <option value="mystery">미스터리/스릴러</option>
+                            <option value="horror">호러</option>
+                            <option value="literary">문학</option>
+                            <option value="adventure">모험</option>
+                            <option value="historical">역사</option>
                         </select>
                     </div>
 
                     <!-- Writing Style -->
                     <div class="setting-group">
-                        <label for="style-select">Writing Style</label>
+                        <label for="style-select">작문 스타일</label>
                         <select id="style-select" class="setting-input">
-                            <option value="descriptive">Descriptive & Immersive</option>
-                            <option value="concise">Concise & Direct</option>
-                            <option value="poetic">Poetic & Lyrical</option>
-                            <option value="dialogue-heavy">Dialogue Heavy</option>
-                            <option value="action">Action-Oriented</option>
-                            <option value="introspective">Introspective</option>
+                            <option value="descriptive">묘사적이고 몰입감 있게</option>
+                            <option value="concise">간결하고 직접적으로</option>
+                            <option value="poetic">시적이고 서정적으로</option>
+                            <option value="dialogue-heavy">대화 중심으로</option>
+                            <option value="action">액션 중심으로</option>
+                            <option value="introspective">내면 탐구적으로</option>
                         </select>
                     </div>
 
                     <!-- Tone Selection -->
                     <div class="setting-group">
-                        <label for="tone-select">Tone</label>
+                        <label for="tone-select">분위기</label>
                         <select id="tone-select" class="setting-input">
-                            <option value="neutral">Neutral</option>
-                            <option value="dark">Dark & Gritty</option>
-                            <option value="light">Light & Hopeful</option>
-                            <option value="humorous">Humorous</option>
-                            <option value="dramatic">Dramatic</option>
-                            <option value="mysterious">Mysterious</option>
+                            <option value="neutral">중립적</option>
+                            <option value="dark">어둡고 사실적</option>
+                            <option value="light">밝고 희망적</option>
+                            <option value="humorous">유머러스</option>
+                            <option value="dramatic">극적</option>
+                            <option value="mysterious">신비로운</option>
                         </select>
                     </div>
 
                     <!-- POV Selection -->
                     <div class="setting-group">
-                        <label for="pov-select">Point of View</label>
+                        <label for="pov-select">시점</label>
                         <select id="pov-select" class="setting-input">
-                            <option value="third-limited">Third Person Limited</option>
-                            <option value="third-omni">Third Person Omniscient</option>
-                            <option value="first">First Person</option>
-                            <option value="second">Second Person</option>
+                            <option value="third-limited">3인칭 제한적</option>
+                            <option value="third-omni">3인칭 전지적</option>
+                            <option value="first">1인칭</option>
+                            <option value="second">2인칭</option>
                         </select>
                     </div>
                 </div>
@@ -496,37 +496,37 @@
                 <!-- Toolbar -->
                 <div class="editor-toolbar">
                     <div class="toolbar-left">
-                        <button id="btn-new" class="toolbar-btn toolbar-btn-compact" title="New Document">
+                        <button id="btn-new" class="toolbar-btn toolbar-btn-compact" title="새 문서">
                             📄
                         </button>
-                        <button id="btn-save" class="toolbar-btn toolbar-btn-compact" title="Save Document">
+                        <button id="btn-save" class="toolbar-btn toolbar-btn-compact" title="문서 저장">
                             💾
                         </button>
-                        <button id="btn-load" class="toolbar-btn toolbar-btn-compact" title="Load Document">
+                        <button id="btn-load" class="toolbar-btn toolbar-btn-compact" title="문서 불러오기">
                             📂
                         </button>
                         <div class="toolbar-separator"></div>
-                        <button id="btn-undo" class="toolbar-btn toolbar-btn-compact" title="Undo (Ctrl+Z)">
+                        <button id="btn-undo" class="toolbar-btn toolbar-btn-compact" title="실행 취소 (Ctrl+Z)">
                             ↶
                         </button>
-                        <button id="btn-redo" class="toolbar-btn toolbar-btn-compact" title="Redo (Ctrl+Y)">
+                        <button id="btn-redo" class="toolbar-btn toolbar-btn-compact" title="다시 실행 (Ctrl+Y)">
                             ↷
                         </button>
                     </div>
                     <div class="toolbar-center">
                         <!-- Generation Controls -->
-                        <button id="btn-generate" class="btn btn-generate" title="Generate from cursor (Ctrl+Enter)">
-                            ✨ Generate
+                        <button id="btn-generate" class="btn btn-generate" title="커서 위치에서 생성 (Ctrl+Enter)">
+                            ✨ 생성
                         </button>
-                        <button id="btn-generate-image" class="btn btn-generate-image" title="Generate Image from context">
-                            🎨 Image
+                        <button id="btn-generate-image" class="btn btn-generate-image" title="문맥에서 이미지 생성">
+                            🎨 이미지
                         </button>
-                        <button id="btn-stop" class="btn btn-stop hidden" title="Stop Generation (Escape)">
-                            ⏹ Stop
+                        <button id="btn-stop" class="btn btn-stop hidden" title="생성 중지 (Escape)">
+                            ⏹ 중지
                         </button>
                     </div>
                     <div class="toolbar-right">
-                        <button id="btn-fullscreen" class="toolbar-btn toolbar-btn-compact" title="Toggle Fullscreen">
+                        <button id="btn-fullscreen" class="toolbar-btn toolbar-btn-compact" title="전체화면 전환">
                             ⛶
                         </button>
                     </div>
@@ -537,32 +537,32 @@
                     <!-- Loading Overlay -->
                     <div id="loading-overlay" class="loading-overlay hidden">
                         <div class="spinner"></div>
-                        <span class="loading-text">Generating...</span>
+                        <span class="loading-text">생성 중...</span>
                     </div>
 
                     <!-- Main Text Area (contenteditable for real-time formatting) -->
                     <div id="editor-textarea" 
                          class="editor-textarea" 
                          contenteditable="true"
-                         data-placeholder="Start writing your story here, or click Generate to let AI begin...
+                         data-placeholder="여기서 이야기를 시작하거나, 생성 버튼을 눌러 AI가 시작하도록 하세요...
 
-Tips:
-- Place your cursor where you want AI to continue writing
-- Use Ctrl+Enter to generate
-- Press Escape to stop generation
-- Your text is automatically saved"></div>
+팁:
+- AI가 이어서 쓰길 원하는 위치에 커서를 놓으세요
+- Ctrl+Enter로 생성할 수 있어요
+- Escape로 생성을 중지할 수 있어요
+- 작성한 내용은 자동으로 저장돼요"></div>
                 </div>
 
                 <!-- Editor Footer -->
                 <div class="editor-footer">
                     <div class="footer-left">
-                        <span id="cursor-position">Line 1, Column 1</span>
+                        <span id="cursor-position">1줄, 1열</span>
                     </div>
                     <div class="footer-center">
                         <span id="generation-info"></span>
                     </div>
                     <div class="footer-right">
-                        <span id="autosave-status">Auto-saved</span>
+                        <span id="autosave-status">자동 저장됨</span>
                     </div>
                 </div>
             </div>
@@ -572,11 +572,11 @@ Tips:
                  ======================================== -->
             <aside class="sidebar sidebar-right">
                 <div class="sidebar-section">
-                    <h3 class="section-title">🎨 Text Formatting</h3>
+                    <h3 class="section-title">🎨 텍스트 서식</h3>
                     
                     <!-- Font Family -->
                     <div class="setting-group">
-                        <label for="font-family">Font Family</label>
+                        <label for="font-family">글꼴</label>
                         <select id="font-family" class="setting-input">
                             <option value="'Merriweather', serif">Merriweather</option>
                             <option value="'Lora', serif">Lora</option>
@@ -591,7 +591,7 @@ Tips:
                     <!-- Font Size -->
                     <div class="setting-group">
                         <label for="font-size-slider">
-                            Font Size: <span id="font-size-value">18</span>px
+                            글자 크기: <span id="font-size-value">18</span>px
                         </label>
                         <input type="range" id="font-size-slider" class="setting-slider" 
                                min="12" max="28" step="1" value="18">
@@ -600,7 +600,7 @@ Tips:
                     <!-- Line Height -->
                     <div class="setting-group">
                         <label for="line-height-slider">
-                            Line Height: <span id="line-height-value">1.8</span>
+                            줄 간격: <span id="line-height-value">1.8</span>
                         </label>
                         <input type="range" id="line-height-slider" class="setting-slider" 
                                min="1.2" max="2.5" step="0.1" value="1.8">
@@ -609,7 +609,7 @@ Tips:
                     <!-- Paragraph Spacing -->
                     <div class="setting-group">
                         <label for="paragraph-spacing-slider">
-                            Paragraph Spacing: <span id="paragraph-spacing-value">1.5</span>em
+                            문단 간격: <span id="paragraph-spacing-value">1.5</span>em
                         </label>
                         <input type="range" id="paragraph-spacing-slider" class="setting-slider" 
                                min="0.5" max="3" step="0.25" value="1.5">
@@ -617,12 +617,12 @@ Tips:
                 </div>
 
                 <div class="sidebar-section">
-                    <h3 class="section-title">🌈 Highlight Colors</h3>
+                    <h3 class="section-title">🌈 강조 색상</h3>
                     
                     <!-- Dialogue Color (Double Quotes) -->
                     <div class="setting-group color-group">
                         <label for="dialogue-color">
-                            Dialogue ("...") Color
+                            대화 ("...") 색상
                         </label>
                         <div class="color-picker-wrapper">
                             <input type="color" id="dialogue-color" class="color-picker" value="#e67e22">
@@ -633,7 +633,7 @@ Tips:
                     <!-- Thoughts Color (Single Quotes) -->
                     <div class="setting-group color-group">
                         <label for="thoughts-color">
-                            Thoughts ('...') Color
+                            생각 ('...') 색상
                         </label>
                         <div class="color-picker-wrapper">
                             <input type="color" id="thoughts-color" class="color-picker" value="#3498db">
@@ -644,7 +644,7 @@ Tips:
                     <!-- Emphasis Color -->
                     <div class="setting-group color-group">
                         <label for="emphasis-color">
-                            Emphasis (*...*) Color
+                            강조 (*...*) 색상
                         </label>
                         <div class="color-picker-wrapper">
                             <input type="color" id="emphasis-color" class="color-picker" value="#9b59b6">
@@ -655,7 +655,7 @@ Tips:
                     <!-- Text Color -->
                     <div class="setting-group color-group">
                         <label for="text-color">
-                            Base Text Color
+                            기본 글자 색상
                         </label>
                         <div class="color-picker-wrapper">
                             <input type="color" id="text-color" class="color-picker" value="#2c3e50">
@@ -666,7 +666,7 @@ Tips:
                     <!-- Background Color -->
                     <div class="setting-group color-group">
                         <label for="bg-color">
-                            Background Color
+                            배경 색상
                         </label>
                         <div class="color-picker-wrapper">
                             <input type="color" id="bg-color" class="color-picker" value="#fdf6e3">
@@ -676,23 +676,23 @@ Tips:
                 </div>
 
                 <div class="sidebar-section">
-                    <h3 class="section-title">📋 Presets</h3>
+                    <h3 class="section-title">📋 프리셋</h3>
                     
                     <!-- Theme Presets -->
                     <div class="preset-buttons">
-                        <button class="preset-btn" data-preset="sepia">📜 Sepia</button>
-                        <button class="preset-btn" data-preset="dark">🌙 Dark</button>
-                        <button class="preset-btn" data-preset="light">☀️ Light</button>
-                        <button class="preset-btn" data-preset="paper">📄 Paper</button>
+                        <button class="preset-btn" data-preset="sepia">📜 세피아</button>
+                        <button class="preset-btn" data-preset="dark">🌙 다크</button>
+                        <button class="preset-btn" data-preset="light">☀️ 라이트</button>
+                        <button class="preset-btn" data-preset="paper">📄 종이</button>
                     </div>
                 </div>
 
                 <div class="sidebar-section">
-                    <h3 class="section-title">💾 Actions</h3>
+                    <h3 class="section-title">💾 동작</h3>
                     <div class="action-buttons">
-                        <button id="btn-export-txt" class="action-btn">Export as .txt</button>
-                        <button id="btn-export-html" class="action-btn">Export as .html</button>
-                        <button id="btn-reset-settings" class="action-btn">Reset Settings</button>
+                        <button id="btn-export-txt" class="action-btn">.txt로 내보내기</button>
+                        <button id="btn-export-html" class="action-btn">.html로 내보내기</button>
+                        <button id="btn-reset-settings" class="action-btn">설정 초기화</button>
                     </div>
                 </div>
             </aside>
