@@ -376,7 +376,7 @@
                 <div class="alert-title">감사합니다!</div>
                 <div class="alert-message">피드백이 성공적으로 제출되었습니다.</div>
             </div>
-            <button class="alert-close" aria-label="닫기">×</button>
+            <button class="alert-close" aria-label="Close">×</button>
         `;
 
         alert.querySelector('.alert-close').addEventListener('click', () => {
