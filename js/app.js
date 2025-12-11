@@ -386,6 +386,61 @@
             }, 500)();
         });
 
+        // Handle Enter key explicitly to ensure it works near non-editable image containers
+        editor.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.ctrlKey && !e.metaKey) {
+                const selection = window.getSelection();
+                if (!selection.rangeCount) return;
+                
+                const range = selection.getRangeAt(0);
+                const anchorNode = selection.anchorNode;
+                
+                // Check if cursor is near a non-editable image container
+                // This can happen when cursor is at a zero-width space adjacent to an image
+                let needsManualLineBreak = false;
+                
+                if (anchorNode && anchorNode.nodeType === Node.TEXT_NODE) {
+                    const text = anchorNode.textContent;
+                    // Check if the text node contains only zero-width spaces
+                    if (text && /^\u200B+$/.test(text)) {
+                        needsManualLineBreak = true;
+                    }
+                    // Also check if we're adjacent to a non-editable element
+                    const parent = anchorNode.parentNode;
+                    if (parent) {
+                        const prevSibling = anchorNode.previousSibling;
+                        const nextSibling = anchorNode.nextSibling;
+                        if ((prevSibling && prevSibling.contentEditable === 'false') ||
+                            (nextSibling && nextSibling.contentEditable === 'false')) {
+                            needsManualLineBreak = true;
+                        }
+                    }
+                }
+                
+                if (needsManualLineBreak) {
+                    e.preventDefault();
+                    
+                    // Insert a line break and a text node for cursor positioning
+                    const br = document.createElement('br');
+                    const textNode = document.createTextNode('\u200B');
+                    
+                    range.deleteContents();
+                    range.insertNode(textNode);
+                    range.insertNode(br);
+                    
+                    // Move cursor after the line break
+                    const newRange = document.createRange();
+                    newRange.setStart(textNode, 0);
+                    newRange.setEnd(textNode, 0);
+                    selection.removeAllRanges();
+                    selection.addRange(newRange);
+                    
+                    // Trigger input event for formatting and stats update
+                    editor.dispatchEvent(new Event('input', { bubbles: true }));
+                }
+            }
+        });
+
         // Update cursor position
         editor.addEventListener('click', updateCursorDisplay);
         editor.addEventListener('keyup', updateCursorDisplay);
