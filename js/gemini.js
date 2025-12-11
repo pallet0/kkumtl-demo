@@ -888,6 +888,132 @@ Example approach: "The letter sat unopened on the table. She knew that handwriti
     }
 
     // ========================================
+    // IMAGE GENERATION
+    // ========================================
+
+    /**
+     * Generates an image using the Gemini image generation model
+     * @param {string} contextText - The novel context to generate an image for
+     * @param {Object} settings - Generation settings (genre, style, etc.)
+     * @param {Function} onComplete - Callback with base64 image data
+     * @param {Function} onError - Callback for errors
+     * @returns {Promise<void>}
+     */
+    async function generateImage(contextText, settings, onComplete, onError) {
+        if (!apiKey) {
+            onError(new Error('API_NOT_INITIALIZED: Please unlock the application first'));
+            return;
+        }
+
+        // Create abort controller for this request
+        currentController = new AbortController();
+
+        try {
+            // Build a prompt for image generation based on the novel context
+            const imagePrompt = buildImagePrompt(contextText, settings);
+            
+            const requestBody = {
+                contents: [
+                    {
+                        role: 'user',
+                        parts: [{ text: imagePrompt }]
+                    }
+                ],
+                generationConfig: {
+                    responseModalities: ['TEXT', 'IMAGE']
+                }
+            };
+
+            const url = `${API_BASE_URL}/models/gemini-2.0-flash-exp-image-generation:generateContent?key=${apiKey}`;
+
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(requestBody),
+                signal: currentController.signal
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                const errorMsg = errorData.error?.message || response.statusText || 'Unknown error';
+                throw new Error(`API_ERROR_${response.status}: ${errorMsg}`);
+            }
+
+            const data = await response.json();
+            
+            // Extract the image from the response
+            const parts = data.candidates?.[0]?.content?.parts;
+            if (!parts || parts.length === 0) {
+                throw new Error('EMPTY_RESPONSE: The AI did not generate an image');
+            }
+
+            // Find the image part in the response
+            let imageData = null;
+            for (const part of parts) {
+                if (part.inlineData && part.inlineData.mimeType && part.inlineData.data) {
+                    imageData = {
+                        mimeType: part.inlineData.mimeType,
+                        data: part.inlineData.data
+                    };
+                    break;
+                }
+            }
+
+            if (!imageData) {
+                throw new Error('NO_IMAGE_IN_RESPONSE: The AI response did not contain an image');
+            }
+
+            onComplete(imageData);
+
+        } catch (error) {
+            if (error.name === 'AbortError') {
+                onError(new Error('IMAGE_GENERATION_CANCELLED: Image generation was stopped by user'));
+            } else {
+                onError(error);
+            }
+        }
+    }
+
+    /**
+     * Builds a prompt for image generation based on novel context
+     * @param {string} contextText - The novel text context
+     * @param {Object} settings - Generation settings
+     * @returns {string} - Image generation prompt
+     */
+    function buildImagePrompt(contextText, settings) {
+        // Get the last portion of text (most recent scene)
+        const recentText = contextText.length > 1500 
+            ? contextText.slice(-1500) 
+            : contextText;
+
+        const genre = settings.genre || 'fantasy';
+        const tone = settings.tone || 'neutral';
+        
+        const prompt = `You are an illustrator for a ${genre} novel. Create a single artistic illustration that captures the essence of the following scene from the story.
+
+Genre: ${genre}
+Tone: ${tone}
+
+Recent story context:
+"""
+${recentText}
+"""
+
+Generate a beautiful, evocative illustration that:
+- Captures the mood and atmosphere of the scene
+- Shows key characters, settings, or moments described in the text
+- Uses an artistic style appropriate for a ${genre} novel
+- Has a composition suitable for a book illustration
+- Does NOT include any text or words in the image
+
+Create the illustration now.`;
+
+        return prompt;
+    }
+
+    // ========================================
     // PUBLIC API
     // ========================================
 
@@ -895,6 +1021,7 @@ Example approach: "The letter sat unopened on the table. She knew that handwriti
         initialize,
         isInitialized,
         generateText,
+        generateImage,
         stopGeneration,
         classifyError
     };

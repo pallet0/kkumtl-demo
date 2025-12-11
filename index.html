@@ -122,6 +122,10 @@
                 <div id="remaining-generations" class="remaining-generations hidden">
                     <span id="remaining-count">0</span> generations left
                 </div>
+                <!-- Remaining Image Generations Display -->
+                <div id="remaining-image-generations" class="remaining-image-generations hidden">
+                    <span id="remaining-image-count">0</span> images left
+                </div>
                 <!-- Word Count Display -->
                 <div class="word-count">
                     <span id="word-count">0</span> words
@@ -270,21 +274,21 @@
                 <!-- Toolbar -->
                 <div class="editor-toolbar">
                     <div class="toolbar-left">
-                        <button id="btn-new" class="toolbar-btn" title="New Document">
-                            📄 New
+                        <button id="btn-new" class="toolbar-btn toolbar-btn-compact" title="New Document">
+                            📄
                         </button>
-                        <button id="btn-save" class="toolbar-btn" title="Save Document">
-                            💾 Save
+                        <button id="btn-save" class="toolbar-btn toolbar-btn-compact" title="Save Document">
+                            💾
                         </button>
-                        <button id="btn-load" class="toolbar-btn" title="Load Document">
-                            📂 Load
+                        <button id="btn-load" class="toolbar-btn toolbar-btn-compact" title="Load Document">
+                            📂
                         </button>
                         <div class="toolbar-separator"></div>
-                        <button id="btn-undo" class="toolbar-btn" title="Undo (Ctrl+Z)">
-                            ↶ Undo
+                        <button id="btn-undo" class="toolbar-btn toolbar-btn-compact" title="Undo (Ctrl+Z)">
+                            ↶
                         </button>
-                        <button id="btn-redo" class="toolbar-btn" title="Redo (Ctrl+Y)">
-                            ↷ Redo
+                        <button id="btn-redo" class="toolbar-btn toolbar-btn-compact" title="Redo (Ctrl+Y)">
+                            ↷
                         </button>
                     </div>
                     <div class="toolbar-center">
@@ -292,13 +296,16 @@
                         <button id="btn-generate" class="btn btn-generate" title="Generate from cursor (Ctrl+Enter)">
                             ✨ Generate
                         </button>
+                        <button id="btn-generate-image" class="btn btn-generate-image" title="Generate Image from context">
+                            🎨 Image
+                        </button>
                         <button id="btn-stop" class="btn btn-stop hidden" title="Stop Generation (Escape)">
                             ⏹ Stop
                         </button>
                     </div>
                     <div class="toolbar-right">
-                        <button id="btn-fullscreen" class="toolbar-btn" title="Toggle Fullscreen">
-                            ⛶ Focus
+                        <button id="btn-fullscreen" class="toolbar-btn toolbar-btn-compact" title="Toggle Fullscreen">
+                            ⛶
                         </button>
                     </div>
                 </div>

@@ -15,9 +15,11 @@ const RateLimitModule = (function() {
     
     const CONFIG = {
         MAX_GENERATIONS_PER_IP: 5,
+        MAX_IMAGE_GENERATIONS_PER_IP: 3,
         MAX_TOKENS_PER_GENERATION: 500,
         MAX_INPUT_TOKENS: 2000,
         STORAGE_KEY: 'novelWriter_rateLimit',
+        IMAGE_STORAGE_KEY: 'novelWriter_imageRateLimit',
         TOKENS_TO_WORDS_RATIO: 0.75,
         CHARS_PER_TOKEN_ESTIMATE: 4
     };
@@ -29,6 +31,7 @@ const RateLimitModule = (function() {
     let state = {
         ip: null,
         generationCount: 0,
+        imageGenerationCount: 0,
         isAdmin: false
     };
 
@@ -59,6 +62,7 @@ const RateLimitModule = (function() {
         state.isAdmin = isAdmin;
         state.ip = await fetchUserIP();
         loadGenerationCount();
+        loadImageGenerationCount();
     }
 
     // ========================================
@@ -128,6 +132,96 @@ const RateLimitModule = (function() {
             return Infinity;
         }
         return Math.max(0, CONFIG.MAX_GENERATIONS_PER_IP - state.generationCount);
+    }
+
+    // ========================================
+    // IMAGE GENERATION COUNT TRACKING
+    // ========================================
+
+    /**
+     * Loads image generation count from local storage
+     */
+    function loadImageGenerationCount() {
+        try {
+            const data = localStorage.getItem(CONFIG.IMAGE_STORAGE_KEY);
+            if (data) {
+                const parsed = JSON.parse(data);
+                // Check if the stored IP matches current IP
+                if (parsed.ip === state.ip) {
+                    state.imageGenerationCount = parsed.count || 0;
+                } else {
+                    // Different IP, reset count
+                    state.imageGenerationCount = 0;
+                }
+            }
+        } catch (error) {
+            console.warn('Failed to load image rate limit data:', error);
+            state.imageGenerationCount = 0;
+        }
+    }
+
+    /**
+     * Saves image generation count to local storage
+     */
+    function saveImageGenerationCount() {
+        try {
+            const data = {
+                ip: state.ip,
+                count: state.imageGenerationCount,
+                timestamp: Date.now()
+            };
+            localStorage.setItem(CONFIG.IMAGE_STORAGE_KEY, JSON.stringify(data));
+        } catch (error) {
+            console.warn('Failed to save image rate limit data:', error);
+        }
+    }
+
+    /**
+     * Increments the image generation count
+     */
+    function incrementImageGenerationCount() {
+        state.imageGenerationCount++;
+        saveImageGenerationCount();
+    }
+
+    /**
+     * Gets the current image generation count
+     * @returns {number} - Current image generation count
+     */
+    function getImageGenerationCount() {
+        return state.imageGenerationCount;
+    }
+
+    /**
+     * Gets the remaining image generations allowed
+     * @returns {number} - Remaining image generations (Infinity for admins)
+     */
+    function getRemainingImageGenerations() {
+        if (state.isAdmin) {
+            return Infinity;
+        }
+        return Math.max(0, CONFIG.MAX_IMAGE_GENERATIONS_PER_IP - state.imageGenerationCount);
+    }
+
+    /**
+     * Checks if the user can generate more images
+     * @returns {Object} - { allowed: boolean, reason: string }
+     */
+    function canGenerateImage() {
+        // Admins bypass all limits
+        if (state.isAdmin) {
+            return { allowed: true, reason: '' };
+        }
+
+        // Check image generation count limit
+        if (state.imageGenerationCount >= CONFIG.MAX_IMAGE_GENERATIONS_PER_IP) {
+            return {
+                allowed: false,
+                reason: `You have reached the maximum number of image generations (${CONFIG.MAX_IMAGE_GENERATIONS_PER_IP}). Please contact an administrator for extended access.`
+            };
+        }
+
+        return { allowed: true, reason: '' };
     }
 
     // ========================================
@@ -240,12 +334,16 @@ const RateLimitModule = (function() {
     return {
         initialize,
         canGenerate,
+        canGenerateImage,
         checkInputTokenLimit,
         getMaxTokens,
         clampMaxWords,
         incrementGenerationCount,
+        incrementImageGenerationCount,
         getGenerationCount,
+        getImageGenerationCount,
         getRemainingGenerations,
+        getRemainingImageGenerations,
         isAdmin,
         getIP,
         CONFIG
