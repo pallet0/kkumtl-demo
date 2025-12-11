@@ -156,6 +156,27 @@
             display: none;
         }
         
+        /* Mobile Survey Icons */
+        .mobile-survey-icons {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-left: auto;
+            padding: 4px 8px;
+            background: var(--bg-secondary, #edf2f7);
+            border-radius: 8px;
+        }
+        
+        .survey-icon-btn.mobile {
+            padding: 8px 12px;
+            border: 1px solid var(--border-color, #e2e8f0);
+            background: white;
+        }
+        
+        .survey-icon-btn.mobile:hover {
+            background: var(--bg-secondary, #edf2f7);
+        }
+        
         /* Small mobile adjustments */
         @media (max-width: 480px) {
             .app-title {
@@ -327,6 +348,15 @@
             <button id="btn-stop-mobile" class="btn btn-stop hidden" title="Stop Generation">
                 ⏹ Stop
             </button>
+            <!-- Mobile Survey Icons -->
+            <div class="mobile-survey-icons">
+                <button id="survey-thumbs-up-mobile" class="survey-icon-btn mobile" title="Like this service">
+                    <span class="thumbs-icon">👍</span>
+                </button>
+                <button id="survey-thumbs-down-mobile" class="survey-icon-btn mobile" title="Dislike this service">
+                    <span class="thumbs-icon">👎</span>
+                </button>
+            </div>
         </div>
 
         <!-- ========================================
@@ -767,6 +797,25 @@ Tips:
                 if (btnGenerate) observer.observe(btnGenerate, observerConfig);
                 if (btnGenerateImage) observer.observe(btnGenerateImage, observerConfig);
                 if (btnStop) observer.observe(btnStop, observerConfig);
+                
+                // Mobile Survey Icons Synchronization
+                const surveyThumbsUp = document.getElementById('survey-thumbs-up');
+                const surveyThumbsDown = document.getElementById('survey-thumbs-down');
+                const surveyThumbsUpMobile = document.getElementById('survey-thumbs-up-mobile');
+                const surveyThumbsDownMobile = document.getElementById('survey-thumbs-down-mobile');
+                
+                // Sync mobile survey buttons with desktop survey buttons
+                if (surveyThumbsUpMobile && surveyThumbsUp) {
+                    surveyThumbsUpMobile.addEventListener('click', function() {
+                        surveyThumbsUp.click();
+                    });
+                }
+                
+                if (surveyThumbsDownMobile && surveyThumbsDown) {
+                    surveyThumbsDownMobile.addEventListener('click', function() {
+                        surveyThumbsDown.click();
+                    });
+                }
             });
         })();
     </script>
