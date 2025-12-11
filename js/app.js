@@ -395,35 +395,20 @@
                 const range = selection.getRangeAt(0);
                 const anchorNode = selection.anchorNode;
                 
-                // Check if cursor is near a non-editable image container
-                // This can happen when cursor is at a zero-width space adjacent to an image
-                let needsManualLineBreak = false;
-                
-                if (anchorNode && anchorNode.nodeType === Node.TEXT_NODE) {
-                    const text = anchorNode.textContent;
-                    // Check if the text node contains only zero-width spaces
-                    if (text && /^\u200B+$/.test(text)) {
-                        needsManualLineBreak = true;
-                    }
-                    // Also check if we're adjacent to a non-editable element
-                    const parent = anchorNode.parentNode;
-                    if (parent) {
-                        const prevSibling = anchorNode.previousSibling;
-                        const nextSibling = anchorNode.nextSibling;
-                        if ((prevSibling && prevSibling.contentEditable === 'false') ||
-                            (nextSibling && nextSibling.contentEditable === 'false')) {
-                            needsManualLineBreak = true;
-                        }
-                    }
-                }
+                // Check if manual line break is needed (cursor at zero-width space near non-editable element)
+                const needsManualLineBreak = anchorNode && 
+                    anchorNode.nodeType === Node.TEXT_NODE && 
+                    anchorNode.textContent && 
+                    (/^\u200B+$/.test(anchorNode.textContent) || 
+                     (anchorNode.previousSibling?.contentEditable === 'false') ||
+                     (anchorNode.nextSibling?.contentEditable === 'false'));
                 
                 if (needsManualLineBreak) {
                     e.preventDefault();
                     
-                    // Insert a line break and a text node for cursor positioning
-                    // Using insertNode places nodes at the range start, so we insert
-                    // in reverse visual order (text node first, then br) to get:
-                    // [br][textNode] in the DOM
+                    // Insert a line break and a text node for cursor positioning.
+                    // insertNode places each node at the current range position,
+                    // so after these two calls the DOM will be: [br][textNode]
                     const br = document.createElement('br');
                     const textNode = document.createTextNode('\u200B');
                     
