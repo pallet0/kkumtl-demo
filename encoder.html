@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ko">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>API Key Encoder - Developer Tool</title>
+    <title>API 키 암호화 도구 - 개발자 도구</title>
     <style>
         /* ========================================
            ENCODER TOOL STYLES
@@ -212,70 +212,70 @@
 </head>
 <body>
     <div class="container">
-        <h1>🔐 API Key Encoder</h1>
-        <p class="subtitle">Developer tool for encrypting Gemini API keys</p>
+        <h1>🔐 API 키 암호화 도구</h1>
+        <p class="subtitle">Gemini API 키 암호화를 위한 개발자 도구</p>
 
         <div class="warning">
-            <strong>⚠️ Security Notice</strong>
-            This tool creates encrypted API keys that can only be decrypted with the password you set.
-            Keep your password secure and never share it publicly. The encryption uses AES-GCM with
-            PBKDF2 key derivation for strong security.
+            <strong>⚠️ 보안 안내</strong>
+            이 도구는 설정한 비밀번호로만 복호화할 수 있는 암호화된 API 키를 생성합니다.
+            비밀번호를 안전하게 보관하고 절대 공개적으로 공유하지 마세요. 암호화는 강력한 보안을 위해
+            PBKDF2 키 유도와 함께 AES-GCM을 사용합니다.
         </div>
 
         <!-- Encoding Section -->
         <div class="form-group">
-            <label for="api-key">Gemini API Key</label>
-            <input type="password" id="api-key" placeholder="Enter your Gemini API key...">
+            <label for="api-key">Gemini API 키</label>
+            <input type="password" id="api-key" placeholder="Gemini API 키를 입력하세요...">
         </div>
 
         <div class="form-group">
-            <label for="encode-password">Encryption Password</label>
-            <input type="password" id="encode-password" placeholder="Create a strong password...">
+            <label for="encode-password">암호화 비밀번호</label>
+            <input type="password" id="encode-password" placeholder="강력한 비밀번호를 만드세요...">
         </div>
 
         <div class="btn-group">
-            <button class="btn btn-primary" onclick="encodeApiKey()">🔒 Encrypt API Key</button>
-            <button class="btn btn-secondary" onclick="testDecryption()">🔓 Test Decryption</button>
+            <button class="btn btn-primary" onclick="encodeApiKey()">🔒 API 키 암호화</button>
+            <button class="btn btn-secondary" onclick="testDecryption()">🔓 복호화 테스트</button>
         </div>
 
         <!-- Results Section -->
         <div class="result-section">
-            <h3>📦 Encrypted Output</h3>
+            <h3>📦 암호화된 출력</h3>
             <div class="output-wrapper">
                 <div class="output-box" id="encrypted-output">
-                    Encrypted data will appear here...
+                    암호화된 데이터가 여기에 나타납니다...
                 </div>
-                <button class="copy-btn" onclick="copyOutput()">📋 Copy</button>
+                <button class="copy-btn" onclick="copyOutput()">📋 복사</button>
             </div>
-            <p class="success-msg" id="copy-success">✓ Copied to clipboard!</p>
+            <p class="success-msg" id="copy-success">✓ 클립보드에 복사되었습니다!</p>
 
             <div class="instructions">
-                <h4>📝 How to use:</h4>
+                <h4>📝 사용 방법:</h4>
                 <ol>
-                    <li>Enter your Gemini API key and create a password</li>
-                    <li>Click "Encrypt API Key" to generate the encrypted string</li>
-                    <li>Copy the encrypted output</li>
-                    <li>Paste it into <code>js/crypto.js</code> in the <code>ENCRYPTED_API_KEY</code> constant</li>
-                    <li>Share the password with authorized users (not the API key!)</li>
-                    <li>Use "Test Decryption" to verify the encryption works</li>
+                    <li>Gemini API 키를 입력하고 비밀번호를 만드세요</li>
+                    <li>"API 키 암호화"를 클릭하여 암호화된 문자열을 생성하세요</li>
+                    <li>암호화된 출력을 복사하세요</li>
+                    <li><code>js/crypto.js</code> 파일의 <code>ENCRYPTED_API_KEY</code> 상수에 붙여넣으세요</li>
+                    <li>권한이 있는 사용자에게 비밀번호를 공유하세요 (API 키가 아닙니다!)</li>
+                    <li>"복호화 테스트"를 사용하여 암호화가 제대로 작동하는지 확인하세요</li>
                 </ol>
             </div>
         </div>
 
         <!-- Decryption Test Section -->
         <div class="result-section">
-            <h3>🧪 Decryption Test</h3>
+            <h3>🧪 복호화 테스트</h3>
             <div class="form-group">
-                <label for="test-encrypted">Encrypted String (paste to test)</label>
-                <textarea id="test-encrypted" placeholder="Paste encrypted string here..."></textarea>
+                <label for="test-encrypted">암호화된 문자열 (테스트를 위해 붙여넣기)</label>
+                <textarea id="test-encrypted" placeholder="암호화된 문자열을 여기에 붙여넣으세요..."></textarea>
             </div>
             <div class="form-group">
-                <label for="test-password">Test Password</label>
-                <input type="password" id="test-password" placeholder="Enter password to test...">
+                <label for="test-password">테스트 비밀번호</label>
+                <input type="password" id="test-password" placeholder="테스트할 비밀번호를 입력하세요...">
             </div>
             <div class="output-wrapper">
                 <div class="output-box" id="decrypted-output">
-                    Decrypted result will appear here...
+                    복호화된 결과가 여기에 나타납니다...
                 </div>
             </div>
         </div>
@@ -433,12 +433,12 @@
             const password = document.getElementById('encode-password').value;
 
             if (!apiKey) {
-                alert('Please enter an API key');
+                alert('API 키를 입력해주세요');
                 return;
             }
 
             if (!password || password.length < 8) {
-                alert('Please enter a password with at least 8 characters');
+                alert('최소 8자 이상의 비밀번호를 입력해주세요');
                 return;
             }
 
@@ -447,9 +447,9 @@
                 document.getElementById('encrypted-output').textContent = encrypted;
                 document.getElementById('test-encrypted').value = encrypted;
                 
-                alert('✅ API key encrypted successfully!\n\nCopy the encrypted string and paste it into crypto.js');
+                alert('✅ API 키가 성공적으로 암호화되었습니다!\n\n암호화된 문자열을 복사하여 crypto.js에 붙여넣으세요');
             } catch (error) {
-                alert('❌ Encryption failed: ' + error.message);
+                alert('❌ 암호화 실패: ' + error.message);
             }
         }
 
@@ -461,28 +461,28 @@
             const password = document.getElementById('test-password').value;
 
             if (!encrypted) {
-                alert('Please enter an encrypted string to test');
+                alert('테스트할 암호화된 문자열을 입력해주세요');
                 return;
             }
 
             if (!password) {
-                alert('Please enter the password');
+                alert('비밀번호를 입력해주세요');
                 return;
             }
 
             try {
                 const decrypted = await decrypt(encrypted, password);
                 document.getElementById('decrypted-output').textContent = 
-                    '✅ Decryption successful!\n\nDecrypted value (first 10 chars): ' + 
+                    '✅ 복호화 성공!\n\n복호화된 값 (처음 10자): ' + 
                     decrypted.substring(0, 10) + '...' +
-                    '\n\nFull length: ' + decrypted.length + ' characters';
+                    '\n\n전체 길이: ' + decrypted.length + '자';
             } catch (error) {
                 document.getElementById('decrypted-output').textContent = 
-                    '❌ Decryption failed!\n\nThis could mean:\n' +
-                    '• Wrong password\n' +
-                    '• Corrupted encrypted data\n' +
-                    '• Invalid format\n\n' +
-                    'Error: ' + error.message;
+                    '❌ 복호화 실패!\n\n가능한 원인:\n' +
+                    '• 잘못된 비밀번호\n' +
+                    '• 손상된 암호화 데이터\n' +
+                    '• 잘못된 형식\n\n' +
+                    '오류: ' + error.message;
             }
         }
 
@@ -492,8 +492,8 @@
         async function copyOutput() {
             const output = document.getElementById('encrypted-output').textContent;
             
-            if (output === 'Encrypted data will appear here...') {
-                alert('Nothing to copy yet!');
+            if (output === '암호화된 데이터가 여기에 나타납니다...') {
+                alert('아직 복사할 내용이 없습니다!');
                 return;
             }
 
@@ -505,7 +505,7 @@
                     successMsg.style.display = 'none';
                 }, 2000);
             } catch (error) {
-                alert('Failed to copy: ' + error.message);
+                alert('복사 실패: ' + error.message);
             }
         }
     </script>

@@ -321,14 +321,14 @@
 
         // Validate satisfaction
         if (!state.satisfaction) {
-            showSurveyError('Please select whether you find the service satisfactory or not.');
+            showSurveyError('서비스가 만족스러운지 아닌지 선택해주세요.');
             return;
         }
 
         // Validate email
         const email = elements.email.value.trim();
         if (!email || !validateEmail(email)) {
-            showSurveyError('Please enter a valid email address.');
+            showSurveyError('유효한 이메일 주소를 입력해주세요.');
             return;
         }
 
@@ -344,7 +344,7 @@
 
         // Disable submit button
         elements.surveySubmit.disabled = true;
-        elements.surveySubmit.textContent = 'Submitting...';
+        elements.surveySubmit.textContent = '제출 중...';
 
         try {
             await sendToSheet(CONFIG.DATA_TABLE, surveyData);
@@ -354,10 +354,10 @@
             showSuccessAlert();
             
         } catch (error) {
-            showSurveyError('Failed to submit feedback. Please try again.');
+            showSurveyError('피드백 제출에 실패했습니다. 다시 시도해주세요.');
         } finally {
             elements.surveySubmit.disabled = false;
-            elements.surveySubmit.textContent = 'Submit Feedback';
+            elements.surveySubmit.textContent = '피드백 제출';
         }
     }
 
@@ -373,10 +373,10 @@
         alert.innerHTML = `
             <span class="alert-icon">✓</span>
             <div class="alert-content">
-                <div class="alert-title">Thank You!</div>
-                <div class="alert-message">Your feedback has been submitted successfully.</div>
+                <div class="alert-title">감사합니다!</div>
+                <div class="alert-message">피드백이 성공적으로 제출되었습니다.</div>
             </div>
-            <button class="alert-close" aria-label="Close">×</button>
+            <button class="alert-close" aria-label="닫기">×</button>
         `;
 
         alert.querySelector('.alert-close').addEventListener('click', () => {
