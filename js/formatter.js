@@ -239,11 +239,13 @@ const FormatterModule = (function() {
 
     /**
      * Gets plain text from contenteditable (without formatting)
+     * Strips zero-width spaces used for cursor positioning
      * @param {HTMLElement} element - Contenteditable element
      * @returns {string} - Plain text
      */
     function getPlainText(element) {
-        return element.textContent || '';
+        // Get text content and remove zero-width spaces (used for cursor positioning)
+        return (element.textContent || '').replace(/\u200B/g, '');
     }
 
     /**
