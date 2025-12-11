@@ -98,18 +98,11 @@ const FormatterModule = (function() {
     // ========================================
 
     /**
-     * Applies real-time formatting to contenteditable element
-     * Note: This function runs on every input event. For very large documents,
-     * consider implementing debouncing or a diffing algorithm.
-     * @param {HTMLElement} element - Contenteditable element
+     * Applies formatting to a text string
+     * @param {string} text - Text to format
+     * @returns {string} - Formatted HTML
      */
-    function applyRealtimeFormatting(element) {
-        // Save cursor position
-        const cursorPos = saveCursorPosition(element);
-        
-        // Get plain text content
-        const text = element.textContent;
-        
+    function formatTextContent(text) {
         // Build formatted HTML
         let formattedHtml = escapeHtml(text);
         
@@ -135,13 +128,98 @@ const FormatterModule = (function() {
             (match, content) => `<span class="emphasis">${content}</span>`
         );
         
-        // Only update if content changed
-        if (element.innerHTML !== formattedHtml) {
-            element.innerHTML = formattedHtml;
+        return formattedHtml;
+    }
+
+    /**
+     * Applies real-time formatting to contenteditable element
+     * Preserves embedded images while formatting text content
+     * Note: This function runs on every input event. For very large documents,
+     * consider implementing debouncing or a diffing algorithm.
+     * @param {HTMLElement} element - Contenteditable element
+     */
+    function applyRealtimeFormatting(element) {
+        // Save cursor position
+        const cursorPos = saveCursorPosition(element);
+        
+        // Check if there are any image containers in the editor
+        const imageContainers = element.querySelectorAll('.novel-image-container');
+        
+        if (imageContainers.length === 0) {
+            // No images - use the simple approach
+            const text = element.textContent;
+            const formattedHtml = formatTextContent(text);
             
-            // Restore cursor position
-            restoreCursorPosition(element, cursorPos);
+            // Only update if content changed
+            if (element.innerHTML !== formattedHtml) {
+                element.innerHTML = formattedHtml;
+                restoreCursorPosition(element, cursorPos);
+            }
+            return;
         }
+        
+        // Images are present - need to preserve them while formatting text
+        // Build formatted content by iterating through child nodes
+        const fragment = document.createDocumentFragment();
+        
+        const processNode = (node) => {
+            if (node.nodeType === Node.TEXT_NODE) {
+                // Format text node
+                const formattedHtml = formatTextContent(node.textContent);
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = formattedHtml;
+                while (tempDiv.firstChild) {
+                    fragment.appendChild(tempDiv.firstChild);
+                }
+            } else if (node.classList && node.classList.contains('novel-image-container')) {
+                // Preserve image container as-is
+                fragment.appendChild(node.cloneNode(true));
+            } else if (node.nodeType === Node.ELEMENT_NODE) {
+                // For other elements (like BR, DIV, P), handle them
+                if (node.tagName === 'BR') {
+                    fragment.appendChild(document.createElement('br'));
+                } else if (node.tagName === 'DIV' || node.tagName === 'P') {
+                    // Browser creates DIV or P elements for new lines in contenteditable
+                    // Process children and add a line break before (if not first) to maintain newlines
+                    if (fragment.childNodes.length > 0) {
+                        // Add a newline character as text to separate from previous content
+                        fragment.appendChild(document.createTextNode('\n'));
+                    }
+                    for (const child of node.childNodes) {
+                        processNode(child);
+                    }
+                } else if (node.tagName === 'SPAN' && (
+                    node.classList.contains('dialogue') ||
+                    node.classList.contains('thoughts') ||
+                    node.classList.contains('emphasis')
+                )) {
+                    // This is a formatting span - get its text and reformat
+                    const formattedHtml = formatTextContent(node.textContent);
+                    const tempDiv = document.createElement('div');
+                    tempDiv.innerHTML = formattedHtml;
+                    while (tempDiv.firstChild) {
+                        fragment.appendChild(tempDiv.firstChild);
+                    }
+                } else {
+                    // Recurse into other elements
+                    for (const child of node.childNodes) {
+                        processNode(child);
+                    }
+                }
+            }
+        };
+        
+        // Process all child nodes
+        for (const child of Array.from(element.childNodes)) {
+            processNode(child);
+        }
+        
+        // Replace content with the formatted fragment
+        element.innerHTML = '';
+        element.appendChild(fragment);
+        
+        // Restore cursor position
+        restoreCursorPosition(element, cursorPos);
     }
 
     /**
@@ -166,12 +244,35 @@ const FormatterModule = (function() {
 
     /**
      * Sets plain text content in contenteditable
+     * Preserves any embedded images while setting the text content
      * @param {HTMLElement} element - Contenteditable element
      * @param {string} text - Text to set
      */
     function setPlainText(element, text) {
         const cursorPos = saveCursorPosition(element);
+        
+        // Save any image containers before replacing content
+        const imageContainers = element.querySelectorAll('.novel-image-container');
+        const savedImages = [];
+        imageContainers.forEach(container => {
+            // Find what comes before and after this image in the text flow
+            // We'll use the image's relative position to reinsert later
+            savedImages.push(container.cloneNode(true));
+        });
+        
+        // Set the text content
         element.textContent = text;
+        
+        // Re-insert saved images at the end (they will be positioned where
+        // the user placed them after the text is set)
+        // Note: Images are typically inserted at the cursor position and will
+        // need to be manually repositioned by the user if text changes significantly
+        savedImages.forEach(img => {
+            element.appendChild(document.createElement('br'));
+            element.appendChild(img);
+            element.appendChild(document.createElement('br'));
+        });
+        
         applyRealtimeFormatting(element);
         if (cursorPos) {
             restoreCursorPosition(element, cursorPos);
