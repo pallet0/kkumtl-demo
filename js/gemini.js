@@ -785,99 +785,99 @@ Example approach: "The letter sat unopened on the table. She knew that handwriti
      * @returns {Object} - Classified error with type, title, and message
      */
     function classifyError(error) {
-        const message = error.message || 'Unknown error occurred';
+        const message = error.message || '알 수 없는 오류가 발생했습니다';
 
         if (message.includes('API_NOT_CONFIGURED')) {
             return {
                 type: 'error',
-                title: 'Configuration Error',
-                message: 'The API key has not been configured. Please contact the administrator.'
+                title: '설정 오류',
+                message: 'API 키가 설정되지 않았습니다. 관리자에게 문의하세요.'
             };
         }
 
         if (message.includes('INVALID_PASSWORD')) {
             return {
                 type: 'error',
-                title: 'Authentication Failed',
-                message: 'The password you entered is incorrect. Please try again.'
+                title: '인증 실패',
+                message: '입력하신 비밀번호가 올바르지 않습니다. 다시 시도해주세요.'
             };
         }
 
         if (message.includes('API_NOT_INITIALIZED')) {
             return {
                 type: 'error',
-                title: 'Not Authenticated',
-                message: 'Please unlock the application with your password first.'
+                title: '인증되지 않음',
+                message: '먼저 비밀번호로 애플리케이션을 잠금 해제해주세요.'
             };
         }
 
         if (message.includes('GENERATION_CANCELLED')) {
             return {
                 type: 'info',
-                title: 'Generation Stopped',
-                message: 'Text generation was cancelled.'
+                title: '생성 중지됨',
+                message: '텍스트 생성이 취소되었습니다.'
             };
         }
 
         if (message.includes('EMPTY_RESPONSE')) {
             return {
                 type: 'warning',
-                title: 'Empty Response',
-                message: 'The AI did not generate any text. Try adjusting your settings or adding more context.'
+                title: '빈 응답',
+                message: 'AI가 텍스트를 생성하지 못했습니다. 설정을 조정하거나 더 많은 맥락을 추가해보세요.'
             };
         }
 
         if (message.includes('API_ERROR_400')) {
             return {
                 type: 'error',
-                title: 'Bad Request',
-                message: 'The request was malformed. Please check your input and try again.'
+                title: '잘못된 요청',
+                message: '요청이 잘못되었습니다. 입력을 확인하고 다시 시도해주세요.'
             };
         }
 
         if (message.includes('API_ERROR_401') || message.includes('API_ERROR_403')) {
             return {
                 type: 'error',
-                title: 'Authentication Error',
-                message: 'API key is invalid or expired. Please contact the administrator.'
+                title: '인증 오류',
+                message: 'API 키가 유효하지 않거나 만료되었습니다. 관리자에게 문의하세요.'
             };
         }
 
         if (message.includes('API_ERROR_404')) {
             return {
                 type:  'error',
-                title:  'Not Found',
-                message: 'The requested model or endpoint was not found. Please check your model selection.'
+                title:  '찾을 수 없음',
+                message: '요청한 모델이나 엔드포인트를 찾을 수 없습니다. 모델 선택을 확인해주세요.'
             };
         }
 
         if (message.includes('API_ERROR_429')) {
             return {
                 type: 'warning',
-                title: 'Rate Limited',
-                message: 'Too many requests.  Please wait a moment before trying again.'
+                title: '요청 제한',
+                message: '요청이 너무 많습니다. 잠시 후 다시 시도해주세요.'
             };
         }
 
         if (message.includes('API_ERROR_500') || message.includes('API_ERROR_503')) {
             return {
                 type: 'error',
-                title: 'Server Error',
-                message: 'The AI service is temporarily unavailable. Please try again later.'
+                title: '서버 오류',
+                message: 'AI 서비스를 일시적으로 사용할 수 없습니다. 나중에 다시 시도해주세요.'
             };
         }
 
         if (message.includes('Failed to fetch') || message.includes('NetworkError')) {
             return {
                 type: 'error',
-                title: 'Network Error',
-                message: 'Could not connect to the AI service. Please check your internet connection.'
+                title: '네트워크 오류',
+                message: 'AI 서비스에 연결할 수 없습니다. 인터넷 연결을 확인해주세요.'
             };
         }
 
         return {
             type: 'error',
-            title: 'Error',
+            title: '오류',
             message: message
         };
     }
