@@ -660,6 +660,9 @@
             },
             // onComplete - called when generation finishes
             (generatedText) => {
+                // Log the final generated text
+                console.log('Final Generated Text:', generatedText);
+                
                 const finalText = textBefore + generatedText + textAfter;
                 FormatterModule.setPlainText(editor, finalText);
                 

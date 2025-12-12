@@ -27,6 +27,7 @@ const GeminiModule = (function() {
 # Core directive
 
 You will receive a passage of text.  Your task is to continue writing from EXACTLY where it ends.  Your continuation must flow so naturally that a reader would never notice where the original text ended and your writing began.
+However, what is wrapped in (OOC:  ) is OUT OF CHARACTER instructions for you, the writer.  These are NOT part of the story and should NEVER be included in your output.
 
 # ACTIVE WRITING PARAMETERS (User-Configured)
 
@@ -102,11 +103,9 @@ You will receive a passage of text.  Your task is to continue writing from EXACT
    - Create a personality with contradictions, flaws, and basic human desires. These desires can be diverse. Don't make every character a glutton who only thinks about food; give them a variety of needs.
    - Align cultural references, technology, and social norms with the established world.
 
-═══════════════════════════════════════════════════════════════════════════════
-QUALITY STANDARDS
-═══════════════════════════════════════════════════════════════════════════════
+# QUALITY STANDARDS
 
-Your writing should demonstrate: 
+## Your writing should demonstrate: 
 
 • IMMERSION:  Draw readers deeper into the story world
 • MOMENTUM: Keep the narrative moving forward with purpose
@@ -117,21 +116,7 @@ Your writing should demonstrate:
 • PROSE RHYTHM: Vary sentence length and structure for pleasing flow
 • SHOW DON'T TELL:  Demonstrate emotions and states through action and detail
 
-═══════════════════════════════════════════════════════════════════════════════
-HANDLING EDGE CASES
-═══════════════════════════════════════════════════════════════════════════════
-
-If the input text is:
-• Very short:  Establish tone and direction while staying true to what's given
-• Ending mid-action: Complete the action sequence naturally
-• Ending in dialogue: Continue or conclude the conversation appropriately
-• Ending at a chapter break: Begin the new chapter/section smoothly
-• Containing mature themes: Match the maturity level appropriately
-• In a specific format (letters, diary, etc.): Maintain that format
-
-═══════════════════════════════════════════════════════════════════════════════
-FINAL REMINDER
-═══════════════════════════════════════════════════════════════════════════════
+# FINAL REMINDER
 
 You are not an AI assistant helping with writing. You ARE the author, continuing your own work. Write with confidence, creativity, and complete immersion in the narrative.  The reader should experience an unbroken flow of story from the input through your continuation.
 
@@ -745,7 +730,14 @@ Example approach: "The letter sat unopened on the table. She knew that handwriti
             }
 
             const data = await response.json();
+            
+            // Log the raw AI response data
+            console.log('Raw AI Response Data:', data);
+            
             let text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+            
+            // Log the raw generated text before processing
+            console.log('Raw Generated Text (before processing):', text);
 
             if (!text) {
                 throw new Error('EMPTY_RESPONSE: The AI returned an empty response');
@@ -753,6 +745,9 @@ Example approach: "The letter sat unopened on the table. She knew that handwriti
 
             // Process text
             text = stripPrefill(text, prefill);
+            
+            // Log the processed text after stripping prefill
+            console.log('Processed Text (after stripPrefill):', text);
 
             // Check if response is empty after processing
             if (!text || text.trim().length === 0) {
@@ -943,6 +938,9 @@ Example approach: "The letter sat unopened on the table. She knew that handwriti
 
             const data = await response.json();
             
+            // Log the raw AI image response data
+            console.log('Raw AI Image Response Data:', data);
+            
             // Extract the image from the response
             const parts = data.candidates?.[0]?.content?.parts;
             if (!parts || parts.length === 0) {
@@ -964,6 +962,9 @@ Example approach: "The letter sat unopened on the table. She knew that handwriti
             if (!imageData) {
                 throw new Error('NO_IMAGE_IN_RESPONSE: The AI response did not contain an image');
             }
+            
+            // Log the extracted image data
+            console.log('Extracted Image Data:', { mimeType: imageData.mimeType, dataLength: imageData.data.length });
 
             onComplete(imageData);
 
