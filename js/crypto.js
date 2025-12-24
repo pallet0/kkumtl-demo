@@ -14,7 +14,7 @@ const CryptoModule = (function() {
     // Replace this with your encrypted API key
     // generated using encoder.html
     // ========================================
-    const ENCRYPTED_API_KEY = 'UhW5TJ772Dri0IwLxTaLP7cl/YqPajw1ikQzYtbnCuupixbbcrEdoVNLrN26/+RNzgBHamF7YXChrTFr4uOWGDjIqqHiXajoCKtWW4W5osMeFBc=';
+    const ENCRYPTED_API_KEY = 'KShzzWI7OzLxw7JazlfDYjqCQyZZyhHgRWLkfMUfkliX9Qt4Q6V/IEUbm4nT765SdSD3kBOnlajIqcgoar2Cp0zbkHu+BHUq5MfMlnobREKAGf8=';
 
     // ========================================
     // ADMIN BYPASS CODE
